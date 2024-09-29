@@ -32,27 +32,36 @@ const Productos = () => {
       };
       
       /*productos */
-      const [nombreProducto, setNombreProducto]=useState(null);
+      const [idProductEdit,setIdProductEdit]=useState(0);
+      const [nombreProducto, setNombreProducto]=useState('');
       const [stockProducto, setStockProducto]=useState(0);
       const [precioProducto, setPrecioProducto]=useState(0);
       const [enabledProducto, setEnabledProducto]=useState(true);
-      const [categoriaProduct, setCategoriaProduct]=useState(null);
+      const [categoriaProduct, setCategoriaProduct]=useState(0);
       const [searchProducts, setSearchProduct]=useState('');
       const [productos, setProductos]=useState([]);
       const [editProduct,setProductEdit]=useState([]);
+
+      /*const de estado de modales  */
+      const [modalAgregar,setModalAgregar]=useState(false);
+      const [modalCategory,setModalCategory]=useState(false);
       
       const addProduct=()=>{
-        if(nombreProducto!==null && categoriaProduct!==null){
+        const nombreProducto1=nombreProducto.trim();
+        if(nombreProducto!==null && nombreProducto1!=='' && categoriaProduct!==0){
           Axios.post('http://localhost:3001/addProduct',{
-            nombre: nombreProducto,
-            stock:   stockProducto ,
-            precio:    precioProducto,
+            nombre:     nombreProducto,
+            stock:      stockProducto ,
+            precio:     precioProducto,
             category:   categoriaProduct,
-            isActivo:    enabledProducto
+            isActivo:   enabledProducto
           }).then(()=>{
             alert('producto agregado correctamente');
-            getProducts();
+           
           });
+        }else{
+          alert('verifica los datos ingresados');
+          
         }
       };
       
@@ -66,27 +75,99 @@ const Productos = () => {
       
       const deleteProduct=(id)=>{
         alert('eliminando producto con id : '+id);
-        Axios.post('http://localhost:3001/deleteProduct',{
-          idProduct:id
+        Axios.delete('http://localhost:3001/deleteProduct',{
+          data:{idProduct: id},
         }).then(()=>{
           alert('producto eliminado con exito');
-          getProducts();
         });
       };
       
       const changeStateProduct=(id, valor)=>{
-        Axios.post('http://localhost:3001/changeState',{
+        Axios.put('http://localhost:3001/changeState',{
           idProduct:id,
           valor:valor
-        }).then(()=>{
-          getProducts();
+        }).then(()=>{ 
+          console.log('state changed');
         });
       };
+
+
+      const editProducto=()=>{
+        Axios.put('http://localhost:3001/updateProduct',{
+          idProduct: idProductEdit,
+          nombre: nombreProducto,
+          stock: stockProducto,
+          precio: precioProducto,
+          category: categoriaProduct,
+        }).then(()=>{
+          alert('producto editado correctamente');
+        })
+      };
+
       
+      const saveProduct=()=>{
+        if(!editar){
+          addProduct();
+        }else{
+          editProducto();
+        }
+      };
+
+      {/*modales */}
+
+      const cerrarModalProduc=()=>{
+              const modalData=document.getElementById('ModalAgregar');
+              const modal=bootstrap.Modal.getInstance(modalData);
+              if(modal){
+                modal.hide();
+              }
+        }
+
+        const abrirModalProduct=()=>{
+          const modalData=document.getElementById('ModalAgregar');
+          const modal=new window.bootstrap.Modal(modalData);
+          modal.show();
+        }
+            
+        const abrirModalCategory=()=>{
+            const modalData=document.getElementById('agregarCategoria');
+            const modal=new window.bootstrap.Modal(modalData);
+            modal.show();
+        }
+
+        const cerrarModalCategory=()=>{
+            const modalData=document.getElementById('agregarCategoria');
+            const modal= bootstrap.Modal.getInstance(modalData);
+            if(modal){
+              modal.hide();
+            }
+        }
+
+
+
+        useEffect(()=>{
+          if(modalCategory){
+            abrirModalCategory();
+          }else{
+            cerrarModalCategory();
+            setCategoria('');
+            setDescripcionCategoria('');
+          }
+        },[modalCategory]);
+
+      useEffect(()=>{
+        if(modalAgregar){
+          abrirModalProduct()
+        }else{
+          cerrarModalProduc()
+        }
+      },[modalAgregar])
       
       useEffect(()=>{
-      if(searchProducts){
+      if(searchProducts!==''){
         console.log(searchProducts);
+        getProducts();
+      }else{
         getProducts();
       }
         
@@ -95,27 +176,43 @@ const Productos = () => {
       
       
       useEffect(()=>{
-        if(editar){
-          console.log(editar);
-          setNombreProducto(editProduct.PRODUCT_NAME);
-          setStockProducto(editProduct.STOCK);
-          setPrecioProducto(editProduct.PRICE);
-          setCategoriaProduct(editProduct.CATEGORY_NAME);
-        }
+          if(!editar){
+            setEditar(!editar);
+            setProductEdit('');
+            setProductEdit([]);
+            setNombreProducto('');
+            setStockProducto(0);
+            setPrecioProducto(0);
+            setCategoriaProduct(0);
+            setIdProductEdit(0);
+          }  
       },[editar]);
+
+      useEffect(()=>{
+        console.log(editProduct);
+        setIdProductEdit(editProduct.PRODUCT_ID);
+        setNombreProducto(editProduct.PRODUCT_NAME);
+        setCategoriaProduct(editProduct.VALUE_CATEGORY);
+        setStockProducto(editProduct.STOCK);
+        setPrecioProducto(editProduct.PRICE);
+      },[editProduct]);
       
+
+
       
-      
+     
       
       
   
-      useEffect(()=>{
+
+
+          getProducts();
+          getCatecogia();
+
         
-        getProducts();
-        getCatecogia();
 
 
-      },[]);
+
         
   // Se ejecuta solo cuando el componente se monta
       
@@ -127,7 +224,7 @@ const Productos = () => {
         <header className="header">
           <a className="back-link" onClick={()=>{setBack(!back);}}>Back</a>
           <h1>Productos</h1>
-          <button className="add-button" data-bs-toggle="modal" data-bs-target="#ModalAgregar">Agregar</button>
+          <button className="add-button" onClick={()=>{setModalAgregar(true)}}>Agregar</button>
         </header>
   
         {/* Subtítulo */}
@@ -163,7 +260,11 @@ const Productos = () => {
                 <td>{product.CATEGORY_NAME}</td>
                 <td>{product.PRICE}</td>
                 <td>
-                  <button className="edit-button" onClick={()=>{setEditar(!editar); setProductEdit(product);}} data-bs-toggle="modal" data-bs-target="#ModalAgregar">Editar</button>
+                  <button className="edit-button" onClick={()=>{
+                    setEditar(true); 
+                     setProductEdit(product);
+                    setModalAgregar(true)}} 
+                    >Editar</button>
                   <button type="button"  className="delete-button_product" onClick={()=>{deleteProduct(product.PRODUCT_ID);}}>Eliminar</button>
 
                 </td>
@@ -180,6 +281,8 @@ const Productos = () => {
             ))}
           </tbody>
         </table>
+
+
         {/* seccion de los modales que estaran ocultos */}
         <div className="p-3 mb-2 bg-primary text-white">.bg-primary</div>
         
@@ -187,46 +290,46 @@ const Productos = () => {
    
 
     
-      <div className="modal fade" id="ModalAgregar" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div className="modal fade" id="ModalAgregar"  tabIndex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="ModalAgregarLabel">{editar?'Editar el producto':'agregar producto'}</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"  onClick={()=>{changeEditar();}} aria-label="Close"></button>
+              <button type="button" className="btn-close"  onClick={()=>{setEditar(false); setModalAgregar(false)}} aria-label="Close"></button>
             </div>
             <div className="modal-body">
               <div className='mb-3'>
                 <label htmlFor="nombreProducto" className='form-label'>Nombre del producto</label>
-                <input type="text"  onChange={(event)=>{setNombreProducto(event.target.value);}} name='nombreProduct' className='form-control' placeholder='nombre producto' />
+                <input type="text"  onChange={(event)=>{setNombreProducto(event.target.value);}} value={nombreProducto} name='nombreProduct' className='form-control' placeholder='nombre producto' />
                 <label htmlFor="cantidad" className='form-label'>cantidad</label>
-                <input type="number"  onChange={(event)=>{Number(setStockProducto(event.target.value));}} className='form-control' placeholder='cantidad' />
+                <input type="number"  onChange={(event)=>{Number(setStockProducto(event.target.value));}} value={stockProducto} className='form-control' placeholder='cantidad' />
                 <label htmlFor="precio">precio</label>
-                <input type="number"  onChange={(event)=>{Number(setPrecioProducto(event.target.value));}}  className='form-control' placeholder='$ precio' />
+                <input type="number"  onChange={(event)=>{Number(setPrecioProducto(event.target.value));}} value={precioProducto}  className='form-control' placeholder='$ precio' />
 
               
                     <div className="mb-3 ">
-                      <label htmlFor="" className="form-label">categoria</label>
-                      <select
+                      <label htmlFor="categoria" className="form-label">categoria</label>
+                      <select value={categoriaProduct}
                         className="form-select"
                         name="categoria"
                         id="categoria"
                         onChange={(event)=>{setCategoriaProduct(event.target.value);}}
                       >
-                       <option selected>seleccione</option>
+                       <option  value={0}>seleccione</option>
                       {categorias.map((categoria,index)=>(
                         <option value={categoria.ID} key={categoria.ID}> <b className='fs-6'>{categoria.NAME}</b>  ::: <b>{categoria.DESCRIPTION}</b></option>
                       ))}
                        
                       
                       </select>
-                      <button type="button" data-bs-toggle='modal' data-bs-target='#agregarCategoria' className='btn btn'><img src="https://img.icons8.com/color/48/add--v1.png" alt="" /></button>
+                      <button type="button" onClick={()=>{setModalCategory(true)}} className='btn btn'><img src="https://img.icons8.com/color/48/add--v1.png" alt="" /></button>
                   
                 </div>
                 
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={()=>{changeEditar();}} data-bs-dismiss="modal">Close</button>
+              <button type="button" className="btn btn-secondary" onClick={()=>{setEditar(false); setModalAgregar(false)}} >Close</button>
               <button type="button" className="btn btn-primary" onClick={saveProduct} >{editar? 'Save changes':'save'}</button>
             </div>
           </div>
@@ -240,23 +343,23 @@ const Productos = () => {
           <div className="modal-content bg-secondary text-white">
             <div className="modal-header">
               <h5 className="modal-title" id="agregarCategoriaLabel">agregar categoria</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <button type="button" className="btn-close" onClick={()=>{setModalCategory(false)}}></button>
             </div>
             <div className="modal-body">
             <div className='mb-3'>
               <label htmlFor="nombreCategoria" className='form-label'>Nombre de la categoria</label>
-              <input type="text" name='nombreCategoria' onChange={(event)=>{
+              <input type="text" value={categoria} name='nombreCategoria' onChange={(event)=>{
               setCategoria(event.target.value);
               }} className='form-control' placeholder='nombre'/>
               <label htmlFor="descripcion" className='form-label' >descripcion</label>
-              <textarea cols="30" name='descripcion' onChange={(event)=>{
+              <textarea cols="30" name='descripcion' value={descripcionCategoria} onChange={(event)=>{
               setDescripcionCategoria(event.target.value);
               }} rows="10" className='form-control' placeholder='describe brevemente la categoria'></textarea>
             </div>
                 
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" className="btn btn-secondary" onClick={()=>{setModalCategory(false)}}>Close</button>
               <button type="button" className="btn btn-primary" onClick={agregarCategory}>Save changes</button>
             </div>
           </div>
@@ -268,12 +371,7 @@ const Productos = () => {
       </div>
     );
     
-    function changeEditar(){
-    if(editar){
-     setEditar(!editar);
-     setProductEdit('');
-    }  
-    }
+
     
     /*min 48:13 */
     function agregarCategory(){
@@ -282,15 +380,10 @@ const Productos = () => {
         description:descripcionCategoria
       }).then(()=>{
         alert('categoria registrado');
-        getCatecogia();
       });
     }
     
-    function saveProduct(){
-      if(!editar){
-        addProduct();
-      }
-    }
+
     
 };
 

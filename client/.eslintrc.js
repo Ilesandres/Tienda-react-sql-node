@@ -4,14 +4,18 @@ module.exports = {
       files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
       rules: {
         'react/prop-types': 'off',
-        'no-console': 'off', // Cambiado a 'off' para permitir console.log
+        'no-console': 'off', 
         'eqeqeq': ['error', 'always'],
-        'semi': ['error', 'always'],
+        'semi': 'off',
         'quotes': ['error', 'single'],
         '@typescript-eslint/no-unused-vars': 'off', // Desactivar advertencia de variables no usadas
         '@typescript-eslint/no-var-requires':'off', //ignoramos los require
         'react/react-in-jsx-scope':'off', //ignora la necesidad de importar react
-
+        'quotes':'off', //desabilita las comillas simples como regla para string
+        '@typescript-eslint/no-empty-function': 'off',
+        'eqeqeq': 'off',
+        '@typescript-eslint/no-this-alias':'off',
+        'react/display-name':'off',
       },
     },
   ],

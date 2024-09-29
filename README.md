@@ -29,11 +29,34 @@ usuario Admin:<br>
 </br>
 ##demas
 
+## Tecnologias usadas:
+- [Expo](https://expo.io/)
+- [Node.js](https://nodejs.org/en/)
+- [React](https://pt-br.reactjs.org/)
+- [React Native](https://reactnative.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [MySQL](https://www.mysql.com/products/workbench/)
+- [moment-timezone]()
+  //back-end
+  ~npm install moment-timezone
+
+
+
 ## 📦 Instalación
 
 1. Clona el repositorio a tu máquina local:
    ```bash
    git clone https://github.com/Ilesandres/Tienda-react-sql-nodet
+   $cd tienda-v2
+
+   cliente
+      $cd client
+      $npm start
+
+    server
+      $cd server
+      $node index.js
+
 
 2. Puedes usar una base de datos local, e importar la base de datos que te dejo adjunta
 3. para uso movil se recomienda con el uso o orientacion horizontal

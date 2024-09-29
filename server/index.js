@@ -2,6 +2,10 @@ const express=require("express");
 const app=express();
 const mysql=require('mysql');
 const cors=require("cors");
+const http=require("http");
+const socketIo=require("socket.io");
+const moment=require('moment-timezone')
+
 
 app.use(cors(
     {
@@ -73,7 +77,7 @@ app.post('/addProduct',(req,res)=>{
 
 app.get('/getProducts',(req,res)=>{
         
-    const searchData = req.query.search; // Tomamos el dato de búsqueda desde 'query' en lugar de 'body'
+    const searchData = req.query.search || ''; // Tomamos el dato de búsqueda desde 'query' en lugar de 'body'
   
     // Si searchData está vacío, no filtramos por nombre
     let query = `SELECT  PRODUCT.id AS PRODUCT_ID,
@@ -81,7 +85,8 @@ app.get('/getProducts',(req,res)=>{
                         PRODUCT.STOCK, 
                         PRODUCT.PRICE,
                         CATEGORY.name AS CATEGORY_NAME, 
-                        PRODUCT.IS_ACTIVE
+                        PRODUCT.IS_ACTIVE,
+                        CATEGORY.ID AS VALUE_CATEGORY
                     FROM 
                         category
                     INNER JOIN 
@@ -104,27 +109,37 @@ app.get('/getProducts',(req,res)=>{
     });
 })
 
-app.post('/deleteProduct',(req,res)=>{
-    const idProduct=req.body.idProduct;
-    
-    db.query(`DELETE FROM PRODUCT_CATEGORY WHERE PRODUCT_ID=?`,[idProduct],(err,seult)=>{
-        if(err){
-            console.log(err);
-        }else{
-            db.query(`DELETE FROM PRODUCT WHERE ID=?`,[idProduct],(err2, result2)=>{
-                if(err){
-                    console.log(err);
-                }else{
-                    res.send('producto eliminado con exito')
-                }
-            })
-        }
-    })
-    
-    
-})
+//verificar su funcionamiento
+app.delete('/deleteProduct', (req, res) => {
+    const idProduct = req.body.idProduct;
 
-app.post('/changeState',(req,res)=>{
+    // Verificar si idProduct es válido
+    if (!idProduct) {
+        return res.status(400).send('ID de producto es requerido');
+    }
+
+    // Eliminar primero de PRODUCT_CATEGORY
+    db.query(`DELETE FROM PRODUCT_CATEGORY WHERE PRODUCT_ID = ?`, [idProduct], (err, result) => {
+        if (err) {
+            console.error('Error al eliminar de PRODUCT_CATEGORY:', err);
+            return res.status(500).send('Error al eliminar la categoría del producto');
+        }
+
+        // Si la primera consulta fue exitosa, eliminar de PRODUCT
+        db.query(`DELETE FROM PRODUCT WHERE ID = ?`, [idProduct], (err2, result2) => {
+            if (err2) {
+                console.error('Error al eliminar de PRODUCT:', err2);
+                return res.status(500).send('Error al eliminar el producto');
+            }
+
+            // Envío de respuesta exitosa
+            res.status(200).send('Producto eliminado con éxito');
+        });
+    });
+});
+
+
+app.put('/changeState',(req,res)=>{
     const idProduct=req.body.idProduct;
     const valor=req.body.valor;
     db.query(`UPDATE PRODUCT SET IS_ACTIVE=? WHERE ID=?`,[valor,idProduct],(err,result)=>{
@@ -136,6 +151,28 @@ app.post('/changeState',(req,res)=>{
     })
     
     
+})
+
+app.put('/updateProduct',(req,res)=>{
+    const idProduct=req.body.idProduct;
+    const nombre=req.body.nombre;
+    const stock=req.body.stock;
+    const precio=req.body.precio;
+    const category=req.body.category;
+    const fecha_Act=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+    db.query(`UPDATE PRODUCT_CATEGORY SET  CATEGORY_ID=? WHERE PRODUCT_ID=?`,[category,idProduct],(err,result)=>{
+        if(err){
+            console.log(err);
+        }else{
+            db.query(`UPDATE PRODUCT SET NAME=?, STOCK=?, PRICE=?, UPDATED_AT=? WHERE ID=? `,[nombre,stock,precio,fecha_Act,idProduct],(err2,result2)=>{
+                if(err2){
+                    console.log(err2);
+                }else{
+                    res.send('producto actualizado con exito')
+                }
+            })
+        }
+    })
 })
 
 
