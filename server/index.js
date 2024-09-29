@@ -176,7 +176,119 @@ app.put('/updateProduct',(req,res)=>{
     })
 })
 
+/*seccion clientes */
 
+app.get('/getClients',(req,res)=>{
+    const search=req.query.search|| '';
+
+    let query=(`SELECT PERSON.FIRST_NAME, LAST_NAME,
+            PERSON.ADDRESS, DOCUMENT_TYPE.ID AS DOC_VALUE, DOCUMENT_TYPE.TYPE,
+            PERSON.DOCUMENT_NUMBER, PERSON.PHONE, ROLE.ID AS ROLE_VALUE,ROLE.NAME,
+            PERSON.IS_ACTIVE,PERSON.ID AS VALUE_PERSON
+            FROM PERSON INNER JOIN DOCUMENT_TYPE 
+            ON PERSON.DOCUMENT_TYPE_ID=DOCUMENT_TYPE.ID
+            INNER JOIN ROLE ON PERSON.ID_ROL=ROLE.ID
+            INNER JOIN CUSTOMER ON CUSTOMER.PERSON_ID=PERSON.ID
+            `);
+
+if(search){
+    query+=` WHERE PERSON.FIRST_NAME like ?  OR PERSON.LAST_NAME like ? OR PERSON.DOCUMENT_NUMBER LIKE ?`;
+}
+
+const searchData=`%${search}%`;
+db.query(query, search? [searchData, searchData, searchData]:[],(err,result)=>{
+    if(err){
+        console.log(err);
+        res.status(500).send('error en la consulta');
+    }else{
+        res.send(result)
+    }
+})
+
+})
+
+app.put('/changeStateClient',(req,res)=>{
+    const idClient=req.body.idClient;
+    const value=req.body.state;
+    const fechaAct=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+    db.query('UPDATE PERSON SET IS_ACTIVE=?, UPDATED_AT=? WHERE ID=?',[value,fechaAct,idClient],(err,result)=>{
+        if(err){
+            console.log(err);
+        }else{
+            res.send('estado actualizado correctamente')
+        }
+    })
+})
+
+app.get('/getTiponit',(re,res)=>{
+    
+    db.query(`SELECT *FROM DOCUMENT_TYPE`,(err,result)=>{
+        if(err){
+            console.log(err);
+        }else{
+            res.send(result);
+        }
+    })
+})
+
+app.post('/addTipoNit',(req,res)=>{
+    const nombre=(req.body.nombre).toLowerCase();
+    db.query(`INSERT INTO DOCUMENT_TYPE(TYPE) VALUE(?)`,[nombre],(err,result)=>{
+        if(err){
+            console.log(err);
+        }else{
+            res.send('categoria agregada correctamente')
+        }
+    })
+})
+
+app.post('/addCliente',(req,res)=>{
+    const nombre =req.body.nombre;
+    const apellido =req.body.apellido;
+    const direccion =req.body.direccion;
+    const nitCliente =req.body.nitCliente;
+    const tipoNit =req.body.tipoNit;
+    const phone =req.body.telefono;
+    const rol =1;
+    const is_Active =true;
+
+    db.query(`INSERT INTO PERSON(FIRST_NAME, LAST_NAME, ADDRESs, DOCUMENT_TYPE_ID, DOCUMENT_NUMBER, PHONE, ID_ROL,IS_ACTIVE) 
+        VALUES (?,?,?,?,?,?,?,?)`,[nombre,apellido,direccion,tipoNit,nitCliente,phone,rol,is_Active],(err,result)=>{
+            if(err){
+                console.log(err);
+            }else{
+                const clienteId=result.insertId;
+                db.query(`INSERT INTO CUSTOMER(PERSON_ID) VALUES(?)`,[clienteId],(err1,resut1)=>{
+                    if(err1){
+                        console.log(err);
+                    }else{
+                        res.send('cliente agregado con exito')
+                    }
+                })
+            }
+    })
+})
+
+app.put('/updateClient',(req,res)=>{
+    const nombre =req.body.nombre;
+    const apellido =req.body.apellido;
+    const direccion =req.body.direccion;
+    const telefono =req.body.telefono;
+    const nit =req.body.nit;
+    const tipoNit =req.body.tipoNit;
+    const idCliente =req.body.idCliente;
+    const fechaAct=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+
+    db.query(`UPDATE PERSON  SET FIRST_NAME=?, LAST_NAME=?,ADDRESS=?,DOCUMENT_TYPE_ID=?,DOCUMENT_NUMBER=?,
+        PHONE=?,UPDATED_AT=? WHERE ID=?
+        `,[nombre, apellido, direccion, tipoNit, nit, telefono, fechaAct, idCliente],(err,result)=>{
+            if(err){
+                console.log(err);
+            }else{
+                res.send('cliente editado con exito')
+            }
+        })
+})
 
 
 

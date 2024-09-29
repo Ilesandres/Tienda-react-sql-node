@@ -57,6 +57,7 @@ const Productos = () => {
             isActivo:   enabledProducto
           }).then(()=>{
             alert('producto agregado correctamente');
+            setModalAgregar(false);
            
           });
         }else{
@@ -101,6 +102,7 @@ const Productos = () => {
           category: categoriaProduct,
         }).then(()=>{
           alert('producto editado correctamente');
+          setModalAgregar(false);
         })
       };
 

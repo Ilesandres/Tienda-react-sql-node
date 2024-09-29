@@ -10,6 +10,9 @@ usuario Admin:<br>
   *user     :  Admin
   *password :  admin
   ``` 
+  ``
+  sistema incompleto, aun se trabaja en el 
+  ``
 
 ![Tienda en linea SQl](https://github.com/Ilesandres/img_Proyects/blob/main/tieda-homepage.png)
 ![productos](https://github.com/Ilesandres/img_Proyects/blob/main/tieda-products.png)
