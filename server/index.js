@@ -142,7 +142,8 @@ app.delete('/deleteProduct', (req, res) => {
 app.put('/changeState',(req,res)=>{
     const idProduct=req.body.idProduct;
     const valor=req.body.valor;
-    db.query(`UPDATE PRODUCT SET IS_ACTIVE=? WHERE ID=?`,[valor,idProduct],(err,result)=>{
+    const fecha_Act=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+    db.query(`UPDATE PRODUCT SET IS_ACTIVE=?, UPDATED_AT=? WHERE ID=?`,[valor,fecha_Act,idProduct],(err,result)=>{
         if(err){
             console.log(err);
         }else{
