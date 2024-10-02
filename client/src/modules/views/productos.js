@@ -122,6 +122,11 @@ const Productos = () => {
               const modal=bootstrap.Modal.getInstance(modalData);
               if(modal){
                 modal.hide();
+                setNombreProducto('');
+                setStockProducto(0);
+                setPrecioProducto(0);
+                setCategoriaProduct(0);
+                setIdProductEdit(0);
               }
         }
 
@@ -179,24 +184,19 @@ const Productos = () => {
       
       useEffect(()=>{
           if(!editar){
-            setEditar(!editar);
-            setProductEdit('');
+            setEditar(false);
             setProductEdit([]);
-            setNombreProducto('');
-            setStockProducto(0);
-            setPrecioProducto(0);
-            setCategoriaProduct(0);
-            setIdProductEdit(0);
+            
           }  
       },[editar]);
 
       useEffect(()=>{
         console.log(editProduct);
-        setIdProductEdit(editProduct.PRODUCT_ID);
-        setNombreProducto(editProduct.PRODUCT_NAME);
-        setCategoriaProduct(editProduct.VALUE_CATEGORY);
-        setStockProducto(editProduct.STOCK);
-        setPrecioProducto(editProduct.PRICE);
+        setIdProductEdit(editProduct.productId);
+        setNombreProducto(editProduct.productName);
+        setCategoriaProduct(editProduct.valueCategory);
+        setStockProducto(editProduct.stock);
+        setPrecioProducto(editProduct.price);
       },[editProduct]);
       
 
@@ -212,11 +212,6 @@ const Productos = () => {
           getCatecogia();
 
         
-
-
-
-        
-  // Se ejecuta solo cuando el componente se monta
       
       
 
@@ -252,28 +247,28 @@ const Productos = () => {
           </thead>
           <tbody>
             {productos.map((product, index) => (
-              <tr key={product.ID_PRODUCT}>
+              <tr key={product.productId}>
                 <td className='index_product'>{index+1}</td>
                 <td className="product-name">
                   <div className="product-icon">A</div>
-                  {product.PRODUCT_NAME}
+                  {product.productName}
                 </td>
-                <td>{product.STOCK}</td>
-                <td>{product.CATEGORY_NAME}</td>
-                <td>{product.PRICE}</td>
+                <td>{product.stock}</td>
+                <td>{product.categoryName}</td>
+                <td>{product.price}</td>
                 <td>
                   <button className="edit-button" onClick={()=>{
                     setEditar(true); 
                      setProductEdit(product);
                     setModalAgregar(true)}} 
                     >Editar</button>
-                  <button type="button"  className="delete-button_product" onClick={()=>{deleteProduct(product.PRODUCT_ID);}}>Eliminar</button>
+                  <button type="button"  className="delete-button_product" onClick={()=>{deleteProduct(product.productId);}}>Eliminar</button>
 
                 </td>
                 <td>
                   <input
                     type="checkbox"
-                    checked={product.IS_ACTIVE}
+                    checked={product.isActive}
                     onChange={(event) => {
                       changeStateProduct(product.PRODUCT_ID, event.target.checked);
                     }}
@@ -319,7 +314,7 @@ const Productos = () => {
                       >
                        <option  value={0}>seleccione</option>
                       {categorias.map((categoria,index)=>(
-                        <option value={categoria.ID} key={categoria.ID}> <b className='fs-6'>{categoria.NAME}</b>  ::: <b>{categoria.DESCRIPTION}</b></option>
+                        <option value={categoria.id} key={categoria.ID}> <b className='fs-6'>{categoria.name}</b>  ::: <b>{categoria.description}</b></option>
                       ))}
                        
                       

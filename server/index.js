@@ -29,7 +29,7 @@ app.post('/createCategory',(req,res)=>{
     const category=req.body.category;
     const description=req.body.description;
     
-    db.query('INSERT INTO CATEGORY(NAME, DESCRIPTION) VALUES (?,?)',[category,description],
+    db.query('INSERT INTO category(name, description) VALUES (?,?)',[category,description],
         (err,result)=>{
             if(err){
                 console.log(err);
@@ -41,7 +41,7 @@ app.post('/createCategory',(req,res)=>{
 });
 
 app.get('/leerCategorias',(req,res)=>{    
-    db.query('SELECT * FROM CATEGORY',(err,result)=>{
+    db.query('SELECT * FROM category',(err,result)=>{
         if(err){
             console.log(err)
         }else{
@@ -58,21 +58,21 @@ app.post('/addProduct',(req,res)=>{
     const category=req.body.category;
     const isActivo=req.body.isActivo;
     
-    db.query('INSERT INTO PRODUCT(NAME,STOCK,PRICE,IS_ACTIVE) VALUES(?,?,?,?)',[nombre,stock,precio,isActivo],(err,result)=>{
-        if(err){
-            console.log(err)
-        }else{
-            const productId=result.insertId;
-            db.query('INSERT INTO PRODUCT_CATEGORY(CATEGORY_ID, PRODUCT_ID) VALUES(?,?)',[category, productId],(err2,result1)=>{
-                if(err2){
-                    console.log(err2)
-                }else{
-                    res.send('prodcto agregado correctamente')
+    db.query('INSERT INTO product (name, stock, price, isActive) VALUES (?, ?, ?, ?)', [nombre, stock, precio, isActivo], (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            const productId = result.insertId;
+            db.query('INSERT INTO product_category (categoryId, productId) VALUES (?, ?)', [category, productId], (err2, result1) => {
+                if (err2) {
+                    console.log(err2);
+                } else {
+                    res.send('Producto agregado correctamente');
                 }
-            })
-            
+            });
         }
-    })
+    });
+    
 });
 
 app.get('/getProducts',(req,res)=>{
@@ -80,23 +80,24 @@ app.get('/getProducts',(req,res)=>{
     const searchData = req.query.search || ''; // Tomamos el dato de búsqueda desde 'query' en lugar de 'body'
   
     // Si searchData está vacío, no filtramos por nombre
-    let query = `SELECT  PRODUCT.id AS PRODUCT_ID,
-                        PRODUCT.name AS PRODUCT_NAME, 
-                        PRODUCT.STOCK, 
-                        PRODUCT.PRICE,
-                        CATEGORY.name AS CATEGORY_NAME, 
-                        PRODUCT.IS_ACTIVE,
-                        CATEGORY.ID AS VALUE_CATEGORY
-                    FROM 
-                        category
-                    INNER JOIN 
-                        product_category ON category.id = product_category.category_id
-                    INNER JOIN 
-                        product ON product_category.product_id = product.id
+    let query = `SELECT  
+                product.id AS productId,
+                product.name AS productName, 
+                product.stock, 
+                product.price,
+                category.name AS categoryName, 
+                product.isActive,
+                category.id AS valueCategory
+            FROM 
+                category
+            INNER JOIN 
+                product_category ON category.id = product_category.categoryId
+            INNER JOIN 
+                product ON product_category.productId = product.id
  `;
   
     if (searchData) {
-      query += ` WHERE PRODUCT.NAME LIKE ?`; // Si hay dato de búsqueda, agregamos la cláusula WHERE
+      query += ` WHERE product.name LIKE ?`; // Si hay dato de búsqueda, agregamos la cláusula WHERE
     }
   
     db.query(query, searchData ? [`%${searchData}%`] : [], (err, result) => {
@@ -119,14 +120,14 @@ app.delete('/deleteProduct', (req, res) => {
     }
 
     // Eliminar primero de PRODUCT_CATEGORY
-    db.query(`DELETE FROM PRODUCT_CATEGORY WHERE PRODUCT_ID = ?`, [idProduct], (err, result) => {
+    db.query(`DELETE FROM PRODUCT_CATEGORY WHERE productId = ?`, [idProduct], (err, result) => {
         if (err) {
             console.error('Error al eliminar de PRODUCT_CATEGORY:', err);
             return res.status(500).send('Error al eliminar la categoría del producto');
         }
 
         // Si la primera consulta fue exitosa, eliminar de PRODUCT
-        db.query(`DELETE FROM PRODUCT WHERE ID = ?`, [idProduct], (err2, result2) => {
+        db.query(`DELETE FROM product WHERE id = ?`, [idProduct], (err2, result2) => {
             if (err2) {
                 console.error('Error al eliminar de PRODUCT:', err2);
                 return res.status(500).send('Error al eliminar el producto');
@@ -143,7 +144,7 @@ app.put('/changeState',(req,res)=>{
     const idProduct=req.body.idProduct;
     const valor=req.body.valor;
     const fecha_Act=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-    db.query(`UPDATE PRODUCT SET IS_ACTIVE=?, UPDATED_AT=? WHERE ID=?`,[valor,fecha_Act,idProduct],(err,result)=>{
+    db.query(`UPDATE product SET isActive=?, updatedAt=? WHERE id=?`,[valor,fecha_Act,idProduct],(err,result)=>{
         if(err){
             console.log(err);
         }else{
@@ -161,11 +162,11 @@ app.put('/updateProduct',(req,res)=>{
     const precio=req.body.precio;
     const category=req.body.category;
     const fecha_Act=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-    db.query(`UPDATE PRODUCT_CATEGORY SET  CATEGORY_ID=? WHERE PRODUCT_ID=?`,[category,idProduct],(err,result)=>{
+    db.query(`UPDATE PRODUCT_CATEGORY SET  categoryId=? WHERE productId=?`,[category,idProduct],(err,result)=>{
         if(err){
             console.log(err);
         }else{
-            db.query(`UPDATE PRODUCT SET NAME=?, STOCK=?, PRICE=?, UPDATED_AT=? WHERE ID=? `,[nombre,stock,precio,fecha_Act,idProduct],(err2,result2)=>{
+            db.query(`UPDATE PRODUCT SET name=?, stock=?, price=?, updatedAt=? WHERE id=? `,[nombre,stock,precio,fecha_Act,idProduct],(err2,result2)=>{
                 if(err2){
                     console.log(err2);
                 }else{
@@ -178,51 +179,54 @@ app.put('/updateProduct',(req,res)=>{
 
 /*seccion clientes */
 
-app.get('/getClients',(req,res)=>{
-    const search=req.query.search|| '';
+app.get('/getClients', (req, res) => {
+    const search = req.query.search || '';
 
-    let query=(`SELECT PERSON.FIRST_NAME, LAST_NAME,
-            PERSON.ADDRESS, DOCUMENT_TYPE.ID AS DOC_VALUE, DOCUMENT_TYPE.TYPE,
-            PERSON.DOCUMENT_NUMBER, PERSON.PHONE, ROLE.ID AS ROLE_VALUE,ROLE.NAME,
-            PERSON.IS_ACTIVE,PERSON.ID AS VALUE_PERSON
-            FROM PERSON INNER JOIN DOCUMENT_TYPE 
-            ON PERSON.DOCUMENT_TYPE_ID=DOCUMENT_TYPE.ID
-            INNER JOIN ROLE ON PERSON.ID_ROL=ROLE.ID
-            INNER JOIN CUSTOMER ON CUSTOMER.PERSON_ID=PERSON.ID
-            `);
+    let query = (`SELECT people.firstName, people.lastName, 
+                    people.address, document_type.id AS docValue, document_type.type, 
+                    people.documentNumber, people.phone, roles.id AS roleValue, roles.name,
+                    people.isActive as peopleIsactive,
+                    people.id AS valuePerson, people.createdAt, people.updatedAt 
+                FROM people
+                INNER JOIN document_type ON people.documentTypeId = document_type.id
+                INNER JOIN roles ON roles.id = 1
+                INNER JOIN customer ON customer.personId = people.id
+                `);
 
-if(search){
-    query+=` WHERE PERSON.FIRST_NAME like ?  OR PERSON.LAST_NAME like ? OR PERSON.DOCUMENT_NUMBER LIKE ?`;
-}
-
-const searchData=`%${search}%`;
-db.query(query, search? [searchData, searchData, searchData]:[],(err,result)=>{
-    if(err){
-        console.log(err);
-        res.status(500).send('error en la consulta');
-    }else{
-        res.send(result)
+    if (search) {
+        query += ` WHERE people.firstName LIKE ? OR people.lastName LIKE ? OR people.documentNumber LIKE ?`;
     }
-})
 
-})
-
-app.put('/changeStateClient',(req,res)=>{
-    const idClient=req.body.idClient;
-    const value=req.body.state;
-    const fechaAct=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-    db.query('UPDATE PERSON SET IS_ACTIVE=?, UPDATED_AT=? WHERE ID=?',[value,fechaAct,idClient],(err,result)=>{
-        if(err){
+    const searchData = `%${search}%`;
+    db.query(query, search ? [searchData, searchData, searchData] : [], (err, result) => {
+        if (err) {
             console.log(err);
-        }else{
-            res.send('estado actualizado correctamente')
+            res.status(500).send('Error en la consulta');
+        } else {
+            res.send(result);
         }
-    })
-})
+    });
+});
+
+app.put('/changeStateClient', (req, res) => {
+    const idClient = req.body.idClient;
+    const value = req.body.state;
+    const fechaAct = moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+    
+    db.query('UPDATE people SET updatedAt = ?, isActive = ? WHERE id = ?', [fechaAct, value, idClient], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Error al actualizar el estado del cliente');
+        } else {
+            res.send('Estado actualizado correctamente');
+        }
+    });
+});
+
 
 app.get('/getTiponit',(re,res)=>{
     
-    db.query(`SELECT *FROM DOCUMENT_TYPE`,(err,result)=>{
+    db.query(`SELECT *FROM document_type`,(err,result)=>{
         if(err){
             console.log(err);
         }else{
@@ -233,7 +237,7 @@ app.get('/getTiponit',(re,res)=>{
 
 app.post('/addTipoNit',(req,res)=>{
     const nombre=(req.body.nombre).toLowerCase();
-    db.query(`INSERT INTO DOCUMENT_TYPE(TYPE) VALUE(?)`,[nombre],(err,result)=>{
+    db.query(`INSERT INTO document_type(type) VALUE(?)`,[nombre],(err,result)=>{
         if(err){
             console.log(err);
         }else{
@@ -242,6 +246,7 @@ app.post('/addTipoNit',(req,res)=>{
     })
 })
 
+//modificar todo esta seccion
 app.post('/addCliente',(req,res)=>{
     const nombre =req.body.nombre;
     const apellido =req.body.apellido;
@@ -252,21 +257,21 @@ app.post('/addCliente',(req,res)=>{
     const rol =1;
     const is_Active =true;
 
-    db.query(`INSERT INTO PERSON(FIRST_NAME, LAST_NAME, ADDRESs, DOCUMENT_TYPE_ID, DOCUMENT_NUMBER, PHONE, ID_ROL,IS_ACTIVE) 
-        VALUES (?,?,?,?,?,?,?,?)`,[nombre,apellido,direccion,tipoNit,nitCliente,phone,rol,is_Active],(err,result)=>{
-            if(err){
-                console.log(err);
-            }else{
-                const clienteId=result.insertId;
-                db.query(`INSERT INTO CUSTOMER(PERSON_ID) VALUES(?)`,[clienteId],(err1,resut1)=>{
-                    if(err1){
-                        console.log(err);
-                    }else{
-                        res.send('cliente agregado con exito')
-                    }
-                })
+    db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)`, [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active], (err, result) => {
+    if (err) {
+        console.log(err);
+    } else {
+        const clienteId = result.insertId;
+        db.query(`INSERT INTO customer (personId) VALUES(?)`, [clienteId], (err1, result1) => {
+            if (err1) {
+                console.log(err1);
+            } else {
+                res.send('Cliente agregado con éxito');
             }
-    })
+        });
+    }
+})
 })
 
 app.put('/updateClient',(req,res)=>{
@@ -279,15 +284,16 @@ app.put('/updateClient',(req,res)=>{
     const idCliente =req.body.idCliente;
     const fechaAct=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
 
-    db.query(`UPDATE PERSON  SET FIRST_NAME=?, LAST_NAME=?,ADDRESS=?,DOCUMENT_TYPE_ID=?,DOCUMENT_NUMBER=?,
-        PHONE=?,UPDATED_AT=? WHERE ID=?
-        `,[nombre, apellido, direccion, tipoNit, nit, telefono, fechaAct, idCliente],(err,result)=>{
-            if(err){
-                console.log(err);
-            }else{
-                res.send('cliente editado con exito')
-            }
-        })
+    db.query(`UPDATE people SET firstName = ?, lastName = ?, address = ?, documentTypeId = ?, documentNumber = ?, 
+        phone = ?, updatedAt = ? WHERE id = ?`, 
+        [nombre, apellido, direccion, tipoNit, nit, telefono, fechaAct, idCliente], 
+        (err, result) => {
+          if (err) {
+              console.log(err);
+          } else {
+              res.send('Cliente editado con éxito');
+          }
+      });
 })
 
 

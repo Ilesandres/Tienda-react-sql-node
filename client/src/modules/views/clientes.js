@@ -189,13 +189,13 @@ const Clientes = () => {
 
     useEffect(()=>{
       if(clienteEditar){
-        setNombreCliente(clienteEditar.FIRST_NAME);
-        setApellidoCliente(clienteEditar.LAST_NAME);
-        setDireccionCliente(clienteEditar.ADDRESS);
-        setNitCliente(clienteEditar.DOCUMENT_NUMBER);
-        setTiponitCliente(clienteEditar.DOC_VALUE);
-        setTelefonoCliente(clienteEditar.PHONE);
-        setIdClientEditar(clienteEditar.VALUE_PERSON);
+        setNombreCliente(clienteEditar.firstName);
+        setApellidoCliente(clienteEditar.lastName);
+        setDireccionCliente(clienteEditar.address);
+        setNitCliente(clienteEditar.documentNumber);
+        setTiponitCliente(clienteEditar.docValue);
+        setTelefonoCliente(clienteEditar.phone);
+        setIdClientEditar(clienteEditar.valuePerson);
       }
       
    },[clienteEditar])
@@ -247,21 +247,21 @@ const Clientes = () => {
               <tr key={index}>
                 <td className="product-name">
                   <div className="product-icon">A</div>
-                  {cliente.FIRST_NAME} {cliente.LAST_NAME}
+                  {cliente.firstName} {cliente.lastName}
                 </td>
-                <td>{cliente.TYPE}</td>
-                <td>{cliente.DOCUMENT_NUMBER}  </td>
-                <td>{cliente.PHONE}  </td>
-                <td>{cliente.ADDRESS}</td>
+                <td>{cliente.type}</td>
+                <td>{cliente.documentNumber}  </td>
+                <td>{cliente.phone}  </td>
+                <td>{cliente.address}</td>
                 <td>
                   <button onClick={()=>{setEditando(true); setClienteEditar(cliente); setAgregarCliente(true);}} className="edit-button">Editar</button>
                 </td>
                 <td>
                   <input
                     type="checkbox"
-                    checked={cliente.IS_ACTIVE}
+                    checked={cliente.peopleIsactive}
                     onChange={(e) => {
-                      changeState(cliente.VALUE_PERSON, e.target.checked);
+                      changeState(cliente.valuePerson, e.target.checked);
                     }}
                   />
                 </td>
@@ -313,7 +313,7 @@ const Clientes = () => {
                 <select value={tipoNitCliente} onChange={(e)=>{setTiponitCliente(e.target.value)}} className="form-select form-select-lg" name=""  id=""  >
                   <option value={0} >Select one</option>
                   {tiposnit.map((nit,index)=>(
-                    <option value={nit.ID} key={nit.ID}>{nit.TYPE}</option>
+                    <option value={nit.id} key={nit.id}>{nit.type}</option>
                   ))}
                 </select>
               </div>
