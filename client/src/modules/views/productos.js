@@ -131,7 +131,7 @@ const Productos = () => {
           nombre: nombreProducto,
           stock: stockProducto,
           precio: precioProducto,
-          category: categoriaProduct,
+          category: wideProductliscategory,
         }).then(()=>{
           alert('producto editado correctamente');
           setModalAgregar(false);
@@ -310,7 +310,7 @@ const Productos = () => {
                   {product.productName}
                 </td>
                 <td>{product.stock}</td>
-                <td>{product.categoryName}</td>
+                <td className='productCategories'>{product.categoryName}</td>
                 <td>{product.price}</td>
                 <td>
                   <button className="edit-button" onClick={()=>{

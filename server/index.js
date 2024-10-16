@@ -173,27 +173,60 @@ app.put('/changeState',(req,res)=>{
     
 })
 
-app.put('/updateProduct',(req,res)=>{
-    const idProduct=req.body.idProduct;
-    const nombre=req.body.nombre;
-    const stock=req.body.stock;
-    const precio=req.body.precio;
-    const category=req.body.category;
-    const fecha_Act=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-    db.query(`UPDATE productCategory SET  categoryId=? WHERE productId=?`,[category,idProduct],(err,result)=>{
-        if(err){
-            console.log(err);
-        }else{
-            db.query(`UPDATE product SET name=?, stock=?, price=?, updatedAt=? WHERE id=? `,[nombre,stock,precio,fecha_Act,idProduct],(err2,result2)=>{
-                if(err2){
-                    console.log(err2);
-                }else{
-                    res.send('producto actualizado con exito')
-                }
-            })
-        }
-    })
-})
+app.put('/updateProduct', (req, res) => {
+    const idProduct = req.body.idProduct;
+    const nombre = req.body.nombre;
+    const stock = req.body.stock;
+    const precio = req.body.precio;
+    const category = req.body.category; // list of category IDs
+    const fecha_Act = moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+
+    
+
+    const updateProductQuery = `UPDATE product SET name = ?, stock = ?, price = ?, updatedAt = ? WHERE id = ?`;
+
+    db.query(updateProductQuery, [nombre, stock, precio, fecha_Act, idProduct], (err, result) => {
+        if (err) {
+            console.log('Error al actualizar el producto');
+            return res.status(500).send('Error al actualizar el producto');
+            
+        } 
+
+        // Delete all existing category associations for the product with ids
+        const deleteCategoriesQuery = `DELETE FROM productcategory WHERE productId = ?`;
+        db.query(deleteCategoriesQuery, [idProduct], (err, result) => {
+            if (err) {
+                console.log('Error al eliminar las categorías asociadas al producto');
+                return res.status(500).send('Error al eliminar las categorías asociadas al producto');
+                
+            }
+           
+            //insert he new values for the category and product
+            const insertCategoryPromises = category.map((categoriaId) => {
+                return new Promise((resolve, reject) => {
+                    const insertCategoryQuery = `INSERT INTO productcategory (productId, categoryId) VALUES (?, ?)`;
+                    db.query(insertCategoryQuery, [idProduct, categoriaId], (err, result) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(result);
+                        }
+                    });
+                });
+            });
+
+            // Wait for all category insertions to complete
+            Promise.all(insertCategoryPromises)
+                .then(() => {
+                    res.status(200).send('Producto editado con éxito');
+                })
+                .catch((err) => {
+                    res.status(500).send('Error al actualizar las categorías del producto');
+                    console.log('Error al actualizar las categorías del producto')
+                });
+        });
+    });
+});
 
 /*seccion clientes */
 

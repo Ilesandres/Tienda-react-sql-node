@@ -168,6 +168,20 @@ body {
   padding: 20px;
 }
 
+.productCategories{
+display: flex;
+justify-content: center;
+align-items: center;
+font-size: 16px;
+padding: 10px;
+color: #717171;
+
+}
+
+.productCategories:hover{
+  cursor: pointer;
+  color: #000000;
+}
 
 
 /* Encabezado */
@@ -253,6 +267,8 @@ body {
   border-radius: 5px;
   cursor: pointer;
 }
+
+
 
 /*lista facturas*/
 
