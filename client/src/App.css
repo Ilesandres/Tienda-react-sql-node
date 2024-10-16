@@ -321,6 +321,7 @@ color: #717171;
   border: 1px solid #ccc;
 }
 
+
 .sort-buttons_facturas button {
   margin-left: 10px;
   padding: 10px 15px;
@@ -329,6 +330,7 @@ color: #717171;
   border-radius: 5px;
   cursor: pointer;
 }
+
 
 /* Lista de productos */
 .product-list_facturas {
@@ -491,7 +493,8 @@ color: #717171;
 }
 
 
-/*clases generales de venas*/
+
+/*clases generales de ventas*/
 
 
 

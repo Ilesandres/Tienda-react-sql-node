@@ -192,7 +192,6 @@ const Productos = () => {
         const deleteOneCategory=()=>{
           const lastPosition=wideProductliscategory.length-1;
           setwideCategoryProducts((prevCategorias)=>prevCategorias.filter((_ ,i)=>i !==lastPosition));
-          console.log('ultima '+lastPosition)
 
         }
 
@@ -240,36 +239,9 @@ const Productos = () => {
         setwideCategoryProducts(editProduct.dataCategory || [0]);
       },[editProduct]);
 
-      useEffect(()=>{
-        console.log(cantCategory);
-        
-      },[cantCategory])
-
-
-      useEffect(()=>{
-        console.log(' const categories');
-        console.log(wideProductliscategory)
-        console.log('posision 1 ')
-        console.log(editProduct.dataCategory)
-      },[wideProductliscategory])
-
-     
-      
-
-
-      
-     
-      
-      
-  
-
-
           getProducts();
           getCatecogia();
 
-        
-      
-      
 
     return (
         <div className="product-list-container">

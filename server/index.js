@@ -236,7 +236,8 @@ app.get('/getClients', (req, res) => {
     let query = (`SELECT people.firstName, people.lastName,
                 people.address,documentType.id AS docValue, documentType.type,
                 people.documentNumber,people.phone, roles.id AS roleValue, roles.name,
-                people.id AS valuePerson, people.createdAt, people.updatedAt, people.isActive
+                people.id AS valuePerson, people.createdAt, people.updatedAt, people.isActive,
+                people.uuid
                 FROM people
                 INNER JOIN documentType on people.documentTypeId=documentType.id
                 INNER JOIN peopleRol on people.id=peopleRol.peopleId
@@ -341,7 +342,32 @@ app.put('/updateClient',(req,res)=>{
 })
 
 
+app.post('/addInvoice',(req,res)=>{
+    const{productos, cliente, total, estado}=req.body
+    const products=[];
+    productos.map((producto)=>{
+        products.push(producto.productId);
+    })
+    console.log('productos :')
+    console.log(productos)
+    console.log(products);
+    console.log('cliente '+cliente)
+    console.log('total : '+total)
+    console.log('estado '+estado)
+})
 
+app.get('/getStatusInvoice',(req,res)=>{
+    db.query(`SELECT invoicestatus.id as statusValue, invoicestatus.name, invoicestatus.description, invoicestatus.uuid
+        from invoicestatus
+        `,(err,result)=>{
+            if(err){
+                console.log(err);
+                res.status(500).send('error')
+            }else{
+                res.status(200).send(result)
+            }
+        })
+})
 
 app.listen(3001,()=>{
     console.log('corriendo en el puerto 3001')
