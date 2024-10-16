@@ -1,27 +1,136 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Axios from 'axios';
 
 const Ventas = () => {
-    
-    const [inventario, setInventario]=useState([
-      {codigo: '1010', producto: 'Arroz Roa x1kg', stock:45, precioUnidad:3500},
-      {codigo: '1012', producto: 'Arveja Diana x1kg', stock:18, precioUnidad: 2500 }
-    ]);
 
-    const [productos, setProductos] = useState([
-        { codigo: '1010', producto: 'Arroz Roa 1x1kg', cantidad: 3, precioUnidad: 3500 },
-        { codigo: '1012', producto: 'Arveja Diana 1x1kg', cantidad: 2, precioUnidad: 2500 },
+
+    const [modalSearchOpen, setModalSearchopen]=useState(false);
+    const [searchModalData,setSearchModalData]=useState('');
+    /*VALORES PARA PRODUCTO */
+    const [producto, setProducto]=useState(false)
+    const [productoSelectId, setProductSelectId]=useState(0);
+    const [productoSelectNombre, setProductSelectNombre]=useState('');
+    const [productoSelectPrecio, setProductSelectPrecio]=useState(0);
+    const [productoSelectCantidad, setProductSelectCantidad]=useState(0);
+    const [productoSelectCategoria, setProductSelectCategoria]=useState('');
+    const [productoSelectCategoriaId, setProductSelectCategoriaId]=useState(0);
+
+    const [editando, setEditando]=useState(false);
+    const [inventario, setInventario]=useState([ ]);
+
+    const [productosAdd, setProductosAdd] = useState([
     ]);
 
     const [total, setTotal] = useState(15500);
     const [pagaCon, setPagaCon] = useState(20000);
-    const [searchProduct, setSearchProduct] = useState(false);
-    const [searchClient, setSearchClient] = useState(false);
     const [searchC, setSearchC] = useState(false);
     const cambio = pagaCon - total;
 
     const navigate = useNavigate();
+    /*modal */
+    const openModalSearch=()=>{
+        const modaldata=document.getElementById('ModalSearch');
+        const modal=new window.bootstrap.Modal(modaldata);
+        if(producto){
+            getProducts();
+        }
+        modal.show();
+    }
 
+    const closeModalSearch=()=>{
+        const modaldata=document.getElementById('ModalSearch');
+        const modal= bootstrap.Modal.getInstance(modaldata);
+        if(modal){
+            modal.hide();
+            setInventario([]);
+            setSearchModalData('');
+        }
+        
+    }
+
+    const saveProduct=()=>{
+        if(!editando){
+            addProduct();
+        }
+
+    }
+
+
+    const selectProduct=(producto)=>{   
+        setProductSelectId(producto.productId);
+        setProductSelectNombre(producto.productName);
+        setProductSelectPrecio(producto.price);
+        setProductSelectCategoria(producto.categoryName);
+        setProductSelectCategoriaId(producto.valueCategory);
+        if(editando){
+            setProductSelectCantidad(producto.quantity);
+        }
+        setModalSearchopen(false);
+    }
+
+    const getProducts=()=>{
+        Axios.get('http://localhost:3001/getProducts',{
+            params:{ search: searchModalData},
+        }).then((res)=>{
+            setInventario(res.data);
+        })
+    }
+
+    const clearDataAddProduct=()=>{
+        setProductSelectId('');
+        setProductSelectNombre('');
+        setProductSelectPrecio(0);
+        setProductSelectCategoria('');
+        setProductSelectCategoriaId('');
+        setProductSelectCantidad(0);
+
+        setEditando(false);
+
+    }
+
+    const addProduct=()=>{
+        if(productoSelectCantidad>0){
+            const data = {
+                "productId": productoSelectId,
+                "productName": productoSelectNombre,
+                "category":productoSelectCategoria,
+                "categoryValue":productoSelectCategoriaId,
+                "price": productoSelectPrecio,
+                "quantity": productoSelectCantidad
+            }
+            setProductosAdd([...productosAdd,data])
+            clearDataAddProduct();
+        }
+        
+
+    }
+
+    useEffect(()=>{
+        if(searchModalData){
+            if(producto){
+                 getProducts();
+            }
+           
+        }else{
+            if(producto){
+                 getProducts();
+            }
+           
+        }
+    },[searchModalData])
+
+    useEffect(()=>{
+        console.log(modalSearchOpen);
+        if(modalSearchOpen){
+            openModalSearch();
+        }else{
+            closeModalSearch()
+        }
+    },[modalSearchOpen])
+    
+
+ 
     return (
         <div className="ventas-container_ventas">
             {/* Encabezado */}
@@ -42,20 +151,20 @@ const Ventas = () => {
                 <h3>Ingrese la información de la venta</h3>
                 <div className="input-group_ventas">
                     <label>Producto</label>
-                    <input type="text" id='inputProduct' readOnly />
-                    <button data-bs-toggle="modal" data-bs-target="#ModalSearch" className="search-btn_ventas">🔍</button>
+                    <input value={productoSelectNombre} type="text" id='inputProduct' readOnly />
+                    <button  onClick={()=>{setProducto(true); setModalSearchopen(true)}} className="search-btn_ventas">🔍</button>
                 </div>
                 <div className="input-group_ventas">
                     <label>Cantidad</label>
-                    <input id='cantidadProdcuto' type="number" />
+                    <input id='cantidadProdcuto' value={productoSelectCantidad} onChange={(e)=>{setProductSelectCantidad(e.target.value)}} type="number" />
                 </div>
                 <div className="input-group_ventas">
                     <label>Precio</label>
-                    <input type="text" id='precioProducto' readOnly={true} />
+                    <input value={productoSelectPrecio} type="text" id='precioProducto' readOnly={true} />
                 </div>
                 <div className="action-buttons_ventas">
-                    <button className="add-btn_ventas">➕</button>
-                    <button onClick={()=>{clearProductsdata();}} className="clear-btn_ventas">🧹</button>
+                    <button onClick={()=>{saveProduct();}} className="add-btn_ventas">➕</button>
+                    <button onClick={()=>{clearDataAddProduct();}} className="clear-btn_ventas">🧹</button>
                 </div>
             </div>
 
@@ -64,19 +173,21 @@ const Ventas = () => {
                 <table>
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>categoria</th>
                             <th>Producto</th>
                             <th>Cantidad</th>
                             <th>Precio Unidad</th>
+                            <th>opcion</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {productos.map((producto, index) => (
+                        {productosAdd.map((producto, index) => (
                             <tr key={index}>
-                                <td>{producto.codigo}</td>
-                                <td>{producto.producto}</td>
-                                <td>{producto.cantidad}</td>
-                                <td>{`$${producto.precioUnidad}`}</td>
+                                <td>{producto.category}</td>
+                                <td>{producto.productName}</td>
+                                <td>{producto.quantity}</td>
+                                <td>{`$${producto.price}`}</td>
+                                <td><button type='button' onClick={()=>{setEditando(true);selectProduct(producto)}}  className='btn btn' >editar</button></td>
                             </tr>
                         ))}
                     </tbody>
@@ -89,7 +200,7 @@ const Ventas = () => {
                     <h4>Cliente</h4>
                     <div className="client-seacrh-table">
                         <input type="text" value="Diego Moreno S" />
-                        <button onClick={() => { setSearchC(!searchC); }} className="search-client-btn_ventas" data-bs-toggle="modal" data-bs-target="#ModalSearch">🔍</button>
+                        <button onClick={() => { setSearchC(!searchC); setModalSearchopen(true) }}>🔍</button>
                     </div>
 
                     <table className="table bg-light">
@@ -122,18 +233,19 @@ const Ventas = () => {
                 </div>
             </div>
 
+
             {/* Modal */}
-            <div className="modal fade" id="ModalSearch" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div className="modal fade" id="ModalSearch" tabIndex="-1" aria-labelledby="modalSearchLabel" aria-hidden="true">
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title" id="ModalSearchLabel">Buscar</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" onClick={changeEditar} aria-label="Close"></button>
+                            <h5 className="modal-title" id="ModalSearchLabel">Buscar {producto? 'productos':'clientes'}</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" onClick={()=>{setProducto(false); setModalSearchopen(false)}} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
                         <div className='mb-3'>
                         <label htmlFor="search" className='form-label'>Buscar</label>
-                          <input type='search' name='search' placeholder='producto a buscar' className='form-control'/>
+                          <input type='search' value={searchModalData} onChange={(e)=>{setSearchModalData(e.target.value); }} name='search' placeholder={producto?'producto a buscar':'cliente a buscar'} className='form-control'/>
                           
                         </div>
                         <div className='form-group'>
@@ -142,7 +254,7 @@ const Ventas = () => {
                           <thead>
                             <tr>
                                 <th scope='col'>#</th>
-                                <th scope='col'>codigo</th>
+                                <th scope='col'>categoria</th>
                                 <th scope='col'>nombre</th>
                                 <th scope='col'>precio</th>
                                 <th scope='col'>stock</th>
@@ -153,11 +265,11 @@ const Ventas = () => {
                           {inventario.map((producto, index)=>(
                             <tr key={index}>
                               <th scope='row'>{index+1}</th>
-                              <th>{producto.codigo}</th>
-                              <td>{producto.producto}</td>
-                              <td>{producto.precioUnidad}</td>
+                              <th>{producto.categoryName}</th>
+                              <td>{producto.productName}</td>
+                              <td>{producto.price}</td>
                               <td>{producto.stock}</td>
-                              <td><button onClick={()=>{selectProduct(index);}} className='btn btn-light' type="button">añadir</button></td>
+                              <td><button  className='btn btn-light' onClick={()=>{selectProduct(producto)}} type="button">añadir</button></td>
                             </tr>
                           ))}
                           </tbody>
@@ -168,54 +280,14 @@ const Ventas = () => {
                             ...
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={changeEditar} data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" className="btn btn-primary" onClick={changeSearchProduct}>
-                                {searchProduct ? 'Seleccionar producto' : searchClient ? 'Seleccionar cliente' : 'Buscar'}
-                            </button>
+                            <button type="button" className="btn btn-secondary" onClick={()=>{setModalSearchopen(false); setProducto(false); }} >Cerrar</button>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     );
-
-    function changeSearchProduct() {
-      if(searchC){
-        !searchClient? setSearchClient(!searchClient):setSearchClient(searchClient);
-      }else{
-         !searchProduct? setSearchProduct(!searchProduct): setSearchProduct(searchProduct);
-      }
-    }
-
-    function changeEditar() {
-        if (searchProduct) {
-            setSearchProduct(false);
-        }
-        if (searchClient) {
-            setSearchClient(false);
-        }
-        if (searchC) {
-            setSearchC(false);
-        }
-    }
-    
-    function selectProduct(index){
-      let in_product= document.getElementById('inputProduct');
-      in_product.value=inventario[index].producto;
-      in_product.key=index;
-      
-      document.getElementById('precioProducto').value=inventario[index].precioUnidad;
-    }
-    
-    function clearProductsdata(){
-      document.getElementById('precioProducto').value='';
-      document.getElementById('inputProduct').value='';
-      document.getElementById('cantidadProdcuto').value='';
-    }
-    
-    function addProduct(){
-      alert('agregando producto');
-    }
 };
 
 export default Ventas;

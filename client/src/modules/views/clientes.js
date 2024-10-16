@@ -259,7 +259,7 @@ const Clientes = () => {
                 <td>
                   <input
                     type="checkbox"
-                    checked={cliente.peopleIsactive}
+                    checked={cliente.isActive}
                     onChange={(e) => {
                       changeState(cliente.valuePerson, e.target.checked);
                     }}

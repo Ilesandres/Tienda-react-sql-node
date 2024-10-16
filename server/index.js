@@ -1,6 +1,6 @@
 const express=require("express");
 const app=express();
-const mysql=require('mysql');
+const mysql=require('mysql2');
 const cors=require("cors");
 const http=require("http");
 const socketIo=require("socket.io");
@@ -51,82 +51,100 @@ app.get('/leerCategorias',(req,res)=>{
 })
 
 /*productos */
-app.post('/addProduct',(req,res)=>{
-    const nombre=req.body.nombre;
-    const stock=req.body.stock;
-    const precio=req.body.precio;
-    const category=req.body.category;
-    const isActivo=req.body.isActivo;
-    
-    db.query('INSERT INTO product (name, stock, price, isActive) VALUES (?, ?, ?, ?)', [nombre, stock, precio, isActivo], (err, result) => {
+app.post('/addProduct', (req, res) => {
+    const { nombre, stock, precio, category, isActivo } = req.body;
+
+    db.query(`INSERT INTO product (name, stock, price, isActive) VALUES (?,?,?,?)`, 
+    [nombre, stock, precio, isActivo], 
+    (err, result) => {
         if (err) {
-            console.log(err);
-        } else {
-            const productId = result.insertId;
-            db.query('INSERT INTO product_category (categoryId, productId) VALUES (?, ?)', [category, productId], (err2, result1) => {
-                if (err2) {
-                    console.log(err2);
-                } else {
-                    res.send('Producto agregado correctamente');
-                }
-            });
+            console.error(err);
+            return res.status(500).send('Error al insertar producto');
         }
+
+        const productId = result.insertId;
+        const queries = category.map(categoria => {
+            return new Promise((resolve, reject) => {
+                db.query(`INSERT INTO productcategory (categoryId, productId) VALUES (?, ?)`, 
+                [categoria, productId], 
+                (err1, result1) => {
+                    if (err1) {
+                        return reject(err1);
+                    }
+                    resolve(result1);
+                });
+            });
+        });
+
+        Promise.all(queries)
+            .then(() => {
+                res.status(200).send('Producto y categorías insertados correctamente');
+            })
+            .catch(error => {
+                console.error(error);
+                res.status(500).send('Error al insertar categorías');
+            });
     });
-    
 });
 
-app.get('/getProducts',(req,res)=>{
-        
-    const searchData = req.query.search || ''; // Tomamos el dato de búsqueda desde 'query' en lugar de 'body'
-  
-    // Si searchData está vacío, no filtramos por nombre
+
+app.get('/getProducts', (req, res) => {
+    const searchData = req.query.search || '';
+    
     let query = `SELECT  
                 product.id AS productId,
                 product.name AS productName, 
                 product.stock, 
                 product.price,
-                category.name AS categoryName, 
-                product.isActive,
-                category.id AS valueCategory
+                GROUP_CONCAT(category.name ORDER BY category.name ASC SEPARATOR ', ') AS categoryName, 
+                GROUP_CONCAT(category.id  ORDER BY category.name ASC SEPARATOR ',') AS valueCategories,
+                product.isActive
             FROM 
                 category
             INNER JOIN 
-                product_category ON category.id = product_category.categoryId
+                productCategory ON category.id = productCategory.categoryId
             INNER JOIN 
-                product ON product_category.productId = product.id
- `;
-  
+                product ON productCategory.productId = product.id`;
+    
     if (searchData) {
-      query += ` WHERE product.name LIKE ?`; // Si hay dato de búsqueda, agregamos la cláusula WHERE
+        query += ` WHERE product.name LIKE ?`; 
     }
+    
+    // Add GROUP BY after WHERE clause or at the end
+    query += ` GROUP BY product.id`;
   
     db.query(query, searchData ? [`%${searchData}%`] : [], (err, result) => {
       if (err) {
         console.log(err);
         res.status(500).send('Error al realizar la búsqueda');
       } else {
+        if(result.length>0){
+            result.forEach((producto)=>{
+                let categories=producto.valueCategories.split(',');
+                producto.dataCategory=categories;
+                producto.cantCategories=categories.length;
+                
+            })
+        }
         res.send(result);
       }
     });
-})
+});
+
 
 //verificar su funcionamiento
 app.delete('/deleteProduct', (req, res) => {
     const idProduct = req.body.idProduct;
 
-    // Verificar si idProduct es válido
     if (!idProduct) {
         return res.status(400).send('ID de producto es requerido');
     }
-
-    // Eliminar primero de PRODUCT_CATEGORY
-    db.query(`DELETE FROM PRODUCT_CATEGORY WHERE productId = ?`, [idProduct], (err, result) => {
+    db.query(`DELETE FROM productCategory WHERE productId = ?`, [idProduct], (err, result) => {
         if (err) {
             console.error('Error al eliminar de PRODUCT_CATEGORY:', err);
             return res.status(500).send('Error al eliminar la categoría del producto');
         }
 
-        // Si la primera consulta fue exitosa, eliminar de PRODUCT
         db.query(`DELETE FROM product WHERE id = ?`, [idProduct], (err2, result2) => {
             if (err2) {
                 console.error('Error al eliminar de PRODUCT:', err2);
@@ -162,11 +180,11 @@ app.put('/updateProduct',(req,res)=>{
     const precio=req.body.precio;
     const category=req.body.category;
     const fecha_Act=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-    db.query(`UPDATE PRODUCT_CATEGORY SET  categoryId=? WHERE productId=?`,[category,idProduct],(err,result)=>{
+    db.query(`UPDATE productCategory SET  categoryId=? WHERE productId=?`,[category,idProduct],(err,result)=>{
         if(err){
             console.log(err);
         }else{
-            db.query(`UPDATE PRODUCT SET name=?, stock=?, price=?, updatedAt=? WHERE id=? `,[nombre,stock,precio,fecha_Act,idProduct],(err2,result2)=>{
+            db.query(`UPDATE product SET name=?, stock=?, price=?, updatedAt=? WHERE id=? `,[nombre,stock,precio,fecha_Act,idProduct],(err2,result2)=>{
                 if(err2){
                     console.log(err2);
                 }else{
@@ -182,20 +200,20 @@ app.put('/updateProduct',(req,res)=>{
 app.get('/getClients', (req, res) => {
     const search = req.query.search || '';
 
-    let query = (`SELECT people.firstName, people.lastName, 
-                    people.address, document_type.id AS docValue, document_type.type, 
-                    people.documentNumber, people.phone, roles.id AS roleValue, roles.name,
-                    people.isActive as peopleIsactive,
-                    people.id AS valuePerson, people.createdAt, people.updatedAt 
+    let query = (`SELECT people.firstName, people.lastName,
+                people.address,documentType.id AS docValue, documentType.type,
+                people.documentNumber,people.phone, roles.id AS roleValue, roles.name,
+                people.id AS valuePerson, people.createdAt, people.updatedAt, people.isActive
                 FROM people
-                INNER JOIN document_type ON people.documentTypeId = document_type.id
-                INNER JOIN roles ON roles.id = 1
-                INNER JOIN customer ON customer.personId = people.id
+                INNER JOIN documentType on people.documentTypeId=documentType.id
+                INNER JOIN peopleRol on people.id=peopleRol.peopleId
+                INNER JOIN roles on  peopleRol.rolId=roles.id WHERE roles.id=1
                 `);
 
     if (search) {
-        query += ` WHERE people.firstName LIKE ? OR people.lastName LIKE ? OR people.documentNumber LIKE ?`;
+        query += ` AND people.firstName LIKE ? OR people.lastName LIKE ? OR people.documentNumber LIKE ?`;
     }
+    query+=` ORDER BY people.updatedAt DESC `;
 
     const searchData = `%${search}%`;
     db.query(query, search ? [searchData, searchData, searchData] : [], (err, result) => {
@@ -226,7 +244,7 @@ app.put('/changeStateClient', (req, res) => {
 
 app.get('/getTiponit',(re,res)=>{
     
-    db.query(`SELECT *FROM document_type`,(err,result)=>{
+    db.query(`SELECT *FROM documentType`,(err,result)=>{
         if(err){
             console.log(err);
         }else{
@@ -237,7 +255,7 @@ app.get('/getTiponit',(re,res)=>{
 
 app.post('/addTipoNit',(req,res)=>{
     const nombre=(req.body.nombre).toLowerCase();
-    db.query(`INSERT INTO document_type(type) VALUE(?)`,[nombre],(err,result)=>{
+    db.query(`INSERT INTO documentType(type) VALUE(?)`,[nombre],(err,result)=>{
         if(err){
             console.log(err);
         }else{
@@ -257,19 +275,12 @@ app.post('/addCliente',(req,res)=>{
     const rol =1;
     const is_Active =true;
 
-    db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)`, [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active], (err, result) => {
+    db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive, idRol) 
+    VALUES (?, ?, ?, ?, ?, ?, ?,?)`, [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active,rol], (err, result) => {
     if (err) {
         console.log(err);
     } else {
-        const clienteId = result.insertId;
-        db.query(`INSERT INTO customer (personId) VALUES(?)`, [clienteId], (err1, result1) => {
-            if (err1) {
-                console.log(err1);
-            } else {
                 res.send('Cliente agregado con éxito');
-            }
-        });
     }
 })
 })

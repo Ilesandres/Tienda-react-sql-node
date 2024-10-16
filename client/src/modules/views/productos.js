@@ -8,6 +8,7 @@ const Productos = () => {
   const navigate=useNavigate();
   const [back, setBack]=useState(false);
   const [editar, setEditar]=useState(false);
+  const [cantCategory, setCantCategory]=useState(1);
 
   useEffect(()=>{
     if(back){
@@ -38,6 +39,7 @@ const Productos = () => {
       const [precioProducto, setPrecioProducto]=useState(0);
       const [enabledProducto, setEnabledProducto]=useState(true);
       const [categoriaProduct, setCategoriaProduct]=useState(0);
+      const [wideProductliscategory, setwideCategoryProducts]=useState([])
       const [searchProducts, setSearchProduct]=useState('');
       const [productos, setProductos]=useState([]);
       const [editProduct,setProductEdit]=useState([]);
@@ -46,25 +48,55 @@ const Productos = () => {
       const [modalAgregar,setModalAgregar]=useState(false);
       const [modalCategory,setModalCategory]=useState(false);
       
-      const addProduct=()=>{
-        const nombreProducto1=nombreProducto.trim();
-        if(nombreProducto!==null && nombreProducto1!=='' && categoriaProduct!==0){
-          Axios.post('http://localhost:3001/addProduct',{
-            nombre:     nombreProducto,
-            stock:      stockProducto ,
-            precio:     precioProducto,
-            category:   categoriaProduct,
-            isActivo:   enabledProducto
-          }).then(()=>{
-            alert('producto agregado correctamente');
-            setModalAgregar(false);
-           
-          });
-        }else{
-          alert('verifica los datos ingresados');
-          
+      const addProduct = () => {
+        if (typeof nombreProducto === 'undefined' || nombreProducto.trim() === '') {
+          alert('El nombre del producto es obligatorio.');
+          return;
         }
+        if (typeof stockProducto === 'undefined' || stockProducto === '' || isNaN(stockProducto) || stockProducto <= 0) {
+          alert('El stock debe ser un número positivo.');
+          return;
+        }
+        if (typeof precioProducto === 'undefined' || precioProducto === '' || isNaN(precioProducto) || precioProducto <= 0) {
+          alert('El precio debe ser un número positivo.');
+          return;
+        }
+        if (!Array.isArray(wideProductliscategory) || wideProductliscategory.length === 0) {
+          alert('Debe seleccionar al menos una categoría válida.');
+          return;
+        }
+        let clearCategory = true;
+        for (let i = 0; i < wideProductliscategory.length; i++) {
+          if (wideProductliscategory[i] === 0 || wideProductliscategory[i] === null || typeof wideProductliscategory[i] === 'undefined') {
+            clearCategory = false;
+            break;
+          }
+        }
+        if (!clearCategory) {
+          alert('Verifica que todas las categorías seleccionadas sean válidas.');
+          return;
+        }
+        if (typeof enabledProducto === 'undefined') {
+          alert('El estado del producto (activo/inactivo) es obligatorio.');
+          return;
+        }
+        Axios.post('http://localhost:3001/addProduct', {
+          nombre: nombreProducto,
+          stock: stockProducto,
+          precio: precioProducto,
+          category: wideProductliscategory,
+          isActivo: enabledProducto
+        })
+        .then(() => {
+          alert('Producto agregado correctamente');
+          setModalAgregar(false); 
+        })
+        .catch((error) => {
+          console.error("Error al agregar producto:", error);
+          alert('Error al agregar el producto. Por favor, intenta nuevamente.');
+        });
       };
+      
       
       const getProducts=()=>{
         Axios.get('http://localhost:3001/getProducts',{
@@ -127,6 +159,9 @@ const Productos = () => {
                 setPrecioProducto(0);
                 setCategoriaProduct(0);
                 setIdProductEdit(0);
+                setEditar(false)
+                setwideCategoryProducts([]);
+                setProductEdit([]);
               }
         }
 
@@ -148,6 +183,17 @@ const Productos = () => {
             if(modal){
               modal.hide();
             }
+        }
+
+        const adSwalCategory=()=>{
+          setwideCategoryProducts((prevCategorias)=>[...prevCategorias, 0])
+        }
+
+        const deleteOneCategory=()=>{
+          const lastPosition=wideProductliscategory.length-1;
+          setwideCategoryProducts((prevCategorias)=>prevCategorias.filter((_ ,i)=>i !==lastPosition));
+          console.log('ultima '+lastPosition)
+
         }
 
 
@@ -181,14 +227,7 @@ const Productos = () => {
       },[searchProducts]);
       
       
-      
-      useEffect(()=>{
-          if(!editar){
-            setEditar(false);
-            setProductEdit([]);
-            
-          }  
-      },[editar]);
+    
 
       useEffect(()=>{
         console.log(editProduct);
@@ -197,7 +236,24 @@ const Productos = () => {
         setCategoriaProduct(editProduct.valueCategory);
         setStockProducto(editProduct.stock);
         setPrecioProducto(editProduct.price);
+        setCantCategory(editProduct.cantCategories || 1);
+        setwideCategoryProducts(editProduct.dataCategory || [0]);
       },[editProduct]);
+
+      useEffect(()=>{
+        console.log(cantCategory);
+        
+      },[cantCategory])
+
+
+      useEffect(()=>{
+        console.log(' const categories');
+        console.log(wideProductliscategory)
+        console.log('posision 1 ')
+        console.log(editProduct.dataCategory)
+      },[wideProductliscategory])
+
+     
       
 
 
@@ -270,7 +326,7 @@ const Productos = () => {
                     type="checkbox"
                     checked={product.isActive}
                     onChange={(event) => {
-                      changeStateProduct(product.PRODUCT_ID, event.target.checked);
+                      changeStateProduct(product.productId, event.target.checked);
                     }}
                   />
                 </td>
@@ -299,18 +355,35 @@ const Productos = () => {
                 <label htmlFor="nombreProducto" className='form-label'>Nombre del producto</label>
                 <input type="text"  onChange={(event)=>{setNombreProducto(event.target.value);}} value={nombreProducto} name='nombreProduct' className='form-control' placeholder='nombre producto' />
                 <label htmlFor="cantidad" className='form-label'>cantidad</label>
-                <input type="number"  onChange={(event)=>{Number(setStockProducto(event.target.value));}} value={stockProducto} className='form-control' placeholder='cantidad' />
+                <input type="number"  onChange={(event)=>{setStockProducto(event.target.value);}} value={stockProducto} className='form-control' placeholder='cantidad' />
                 <label htmlFor="precio">precio</label>
-                <input type="number"  onChange={(event)=>{Number(setPrecioProducto(event.target.value));}} value={precioProducto}  className='form-control' placeholder='$ precio' />
+                <input type="number"  onChange={(event)=>{setPrecioProducto(event.target.value);}} value={precioProducto}  className='form-control' placeholder='$ precio' />
 
-              
-                    <div className="mb-3 ">
-                      <label htmlFor="categoria" className="form-label">categoria</label>
-                      <select value={categoriaProduct}
+                <div className="mb-3 ">
+                <label htmlFor="categoria" className="form-label">categoria</label>
+                    {Array.from({length : cantCategory}).map((_ ,index1)=>(
+                      <div className='mb-3' key={index1}>
+                        <select value={wideProductliscategory[index1]}
                         className="form-select"
                         name="categoria"
                         id="categoria"
-                        onChange={(event)=>{setCategoriaProduct(event.target.value);}}
+                        onChange={(event)=>{
+                          const selectValue=event.target.value;
+                          setwideCategoryProducts((prevCategorias)=>{
+                            const newCategories=[...prevCategorias];
+                            for(let i=0; i<wideProductliscategory.length; i++){
+                              if(wideProductliscategory[i]===selectValue){
+                                alert('seleciona una categoria sin seleccionar')
+                                newCategories[index1]=0;
+                                return newCategories;
+                              }else{
+                                newCategories[index1]=selectValue;
+                                return newCategories
+                              }
+                            }
+                            
+                          })
+                        }}
                       >
                        <option  value={0}>seleccione</option>
                       {categorias.map((categoria,index)=>(
@@ -319,8 +392,22 @@ const Productos = () => {
                        
                       
                       </select>
-                      <button type="button" onClick={()=>{setModalCategory(true)}} className='btn btn'><img src="https://img.icons8.com/color/48/add--v1.png" alt="" /></button>
+                      </div>
+
+                    ))}
+                    
+                      
+                      <div className='conatiner-buttons'>
+                        <button type='button' className='child-button' title='add category to product'><
+                         img src="https://img.icons8.com/wired/64/add.png" onClick={()=>{setCantCategory(cantCategory+1); adSwalCategory();}} alt="add category" /></button>
+                         <button className='child-button' title='remove category'
+                         onClick={()=>{cantCategory>1? setCantCategory(cantCategory-1):setCantCategory(1); deleteOneCategory();}}
+                         ><img src="https://img.icons8.com/dotty/80/minus.png" alt="" /></button>
+                         <button type="button" onClick={()=>{setModalCategory(true)}} className=' child-button'><img src="https://img.icons8.com/color/48/add--v1.png" alt="" /></button>
                   
+                      </div>
+                      
+                      
                 </div>
                 
               </div>

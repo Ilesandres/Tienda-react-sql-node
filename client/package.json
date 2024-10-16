@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "react": "^18.3.1",
@@ -13,8 +13,8 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "^5.0.1",
     "socket.io-client": "^4.8.0",
-    "web-vitals": "^2.1.4",
-    "webpack": "^5.94.0",
+    "web-vitals": "^4.2.3",
+    "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
@@ -48,7 +48,7 @@
     "eslint": "^8.57.1",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-react": "^7.36.1",
-    "globals": "^15.9.0",
-    "typescript-eslint": "^8.7.0"
+    "globals": "^15.10.0",
+    "typescript-eslint": "^8.8.0"
   }
 }
