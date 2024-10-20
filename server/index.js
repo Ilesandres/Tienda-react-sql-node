@@ -90,6 +90,7 @@ app.post('/addProduct', (req, res) => {
 
 app.get('/getProducts', (req, res) => {
     const searchData = req.query.search || '';
+    const store=1;
     
     let query = `SELECT  
                 product.id AS productId,
@@ -104,16 +105,20 @@ app.get('/getProducts', (req, res) => {
             INNER JOIN 
                 productCategory ON category.id = productCategory.categoryId
             INNER JOIN 
-                product ON productCategory.productId = product.id`;
+                product ON productCategory.productId = product.id
+                INNER JOIN 
+		    productsstore ON product.id=productsstore.productId`;
     
     if (searchData) {
-        query += ` WHERE product.name LIKE ?`; 
+        query += ` WHERE product.name LIKE ? AND productsstore.storeId=?`; 
+    }else{
+
     }
     
     // Add GROUP BY after WHERE clause or at the end
     query += ` GROUP BY product.id`;
   
-    db.query(query, searchData ? [`%${searchData}%`] : [], (err, result) => {
+    db.query(query, searchData ? [`%${searchData}%`,store] : [], (err, result) => {
       if (err) {
         console.log(err);
         res.status(500).send('Error al realizar la búsqueda');

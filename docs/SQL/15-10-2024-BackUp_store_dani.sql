@@ -73,19 +73,22 @@ CREATE TABLE `invoice` (
   `peopleId` int(20) DEFAULT NULL,
   `uuid` char(36) NOT NULL,
   `total` decimal(10,4) DEFAULT NULL,
+  `paymentMethod` int(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   KEY `statusId` (`statusId`),
   KEY `peopleId` (`peopleId`),
+  KEY `paymentMethod` (`paymentMethod`),
   CONSTRAINT `invoice_ibfk_2` FOREIGN KEY (`statusId`) REFERENCES `invoicestatus` (`id`),
-  CONSTRAINT `invoice_ibfk_3` FOREIGN KEY (`peopleId`) REFERENCES `people` (`id`)
+  CONSTRAINT `invoice_ibfk_3` FOREIGN KEY (`peopleId`) REFERENCES `people` (`id`),
+  CONSTRAINT `invoice_ibfk_4` FOREIGN KEY (`paymentMethod`) REFERENCES `paymentmethod` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `invoice` */
 
-insert  into `invoice`(`id`,`statusId`,`createdAt`,`updatedAt`,`peopleId`,`uuid`,`total`) values 
-(1,1,'2024-10-11 14:37:58',NULL,1,'51f3c79f-8808-11ef-ade4-0ae0afa00364',NULL),
-(2,2,'2024-10-11 14:38:24',NULL,1,'61648a95-8808-11ef-ade4-0ae0afa00364',NULL);
+insert  into `invoice`(`id`,`statusId`,`createdAt`,`updatedAt`,`peopleId`,`uuid`,`total`,`paymentMethod`) values 
+(1,1,'2024-10-20 12:09:58',NULL,1,'51f3c79f-8808-11ef-ade4-0ae0afa00364',NULL,1),
+(2,2,'2024-10-20 12:10:01',NULL,1,'61648a95-8808-11ef-ade4-0ae0afa00364',NULL,1);
 
 /*Table structure for table `invoiceproduct` */
 
@@ -164,6 +167,36 @@ CREATE TABLE `orderstatus` (
 
 /*Data for the table `orderstatus` */
 
+/*Table structure for table `paymentgatewayrecords` */
+
+DROP TABLE IF EXISTS `paymentgatewayrecords`;
+
+CREATE TABLE `paymentgatewayrecords` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `response` text DEFAULT NULL,
+  `paymentsMethod` int(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `paymentsMethod` (`paymentsMethod`),
+  CONSTRAINT `paymentgatewayrecords_ibfk_1` FOREIGN KEY (`paymentsMethod`) REFERENCES `paymentmethod` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `paymentgatewayrecords` */
+
+/*Table structure for table `paymentmethod` */
+
+DROP TABLE IF EXISTS `paymentmethod`;
+
+CREATE TABLE `paymentmethod` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `method` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `paymentmethod` */
+
+insert  into `paymentmethod`(`id`,`method`) values 
+(1,'Efectivo');
+
 /*Table structure for table `people` */
 
 DROP TABLE IF EXISTS `people`;
@@ -189,10 +222,10 @@ CREATE TABLE `people` (
 /*Data for the table `people` */
 
 insert  into `people`(`id`,`firstName`,`lastName`,`address`,`documentTypeId`,`documentNumber`,`phone`,`createdAt`,`updatedAt`,`isActive`,`uuid`) values 
-(1,'Juan','Perez','Calle 45 22-33',4,'1234567890','32132145','2024-10-15 19:05:18','2024-10-15 19:05:18',1,'f5e18d0a-8a78-11ef-9c33-0ae0afa00364'),
-(2,'Camilo','Rendon','Vereda Palermo norte',5,'12536842','3215324830','2024-10-14 17:09:19','2024-10-10 16:33:35',1,'f5e21893-8a78-11ef-9c33-0ae0afa00364'),
-(3,'Camilo','Calderon','calle 5 #3 sur',5,'1256891','3227569852','2024-10-15 19:05:21','2024-10-15 19:05:21',1,'f5e2198a-8a78-11ef-9c33-0ae0afa00364'),
-(4,'Sarah','mandrogan','centro',5,'1245002','3226440156','2024-10-14 17:09:19',NULL,0,'f5e21a2f-8a78-11ef-9c33-0ae0afa00364');
+(1,'Juan','Perez','Calle 45 22-33',4,'1234567890','32132145','2024-10-20 11:43:13','2024-10-20 11:43:13',1,'f5e18d0a-8a78-11ef-9c33-0ae0afa00364'),
+(2,'Camilo','Rendon','Vereda Palermo norte',5,'12536842','3215324830','2024-10-20 11:44:27','2024-10-20 11:44:27',1,'f5e21893-8a78-11ef-9c33-0ae0afa00364'),
+(3,'Camilo ','Calderon','calle 5 #3 sur',5,'1256891','3227569852','2024-10-20 11:43:12','2024-10-20 11:43:12',1,'f5e2198a-8a78-11ef-9c33-0ae0afa00364'),
+(4,'Sarah M','mandrogan','centro',5,'1245002','3226440156','2024-10-20 12:30:42','2024-10-20 12:30:42',0,'f5e21a2f-8a78-11ef-9c33-0ae0afa00364');
 
 /*Table structure for table `product` */
 
@@ -214,11 +247,11 @@ CREATE TABLE `product` (
 /*Data for the table `product` */
 
 insert  into `product`(`id`,`name`,`stock`,`price`,`createdAt`,`updatedAt`,`isActive`,`uuid`) values 
-(2,'Leche',25,4000,'2024-10-02 10:01:00','2024-10-16 10:39:23',1,'52a9da61-8a7c-11ef-907d-0ae0afa00364'),
+(2,'Leche',25,4000,'2024-10-02 10:01:00','2024-10-20 12:30:29',1,'52a9da61-8a7c-11ef-907d-0ae0afa00364'),
 (3,'Pollo (kg)',15,8000,'2024-10-02 10:02:00','2024-10-16 10:39:37',1,'52a9ed50-8a7c-11ef-907d-0ae0afa00364'),
 (4,'Carne de Res (kg)',10,18000,'2024-10-02 10:03:00','2024-10-02 10:03:00',1,'52a9ee30-8a7c-11ef-907d-0ae0afa00364'),
 (5,'Manzana (unidad)',50,2000,'2024-10-02 10:04:00','2024-10-02 10:04:00',1,'52a9eed3-8a7c-11ef-907d-0ae0afa00364'),
-(6,'Jugo (botella)',20,3000,'2024-10-02 10:05:00','2024-10-02 10:05:00',1,'52a9ef69-8a7c-11ef-907d-0ae0afa00364'),
+(6,'Jugo (botella)',20,3000,'2024-10-02 10:05:00','2024-10-20 12:30:14',1,'52a9ef69-8a7c-11ef-907d-0ae0afa00364'),
 (7,'Huevo (docena)',30,5000,'2024-10-02 10:06:00','2024-10-02 10:06:00',1,'52a9f001-8a7c-11ef-907d-0ae0afa00364'),
 (8,'Tetra Pak',40,3000,'2024-10-02 10:07:00','2024-10-02 10:07:00',1,'52a9f094-8a7c-11ef-907d-0ae0afa00364'),
 (9,'Hueso perro',10,2500,'2024-10-02 10:08:00','2024-10-02 10:08:00',1,'52a9f123-8a7c-11ef-907d-0ae0afa00364'),
@@ -243,7 +276,7 @@ CREATE TABLE `productcategory` (
   KEY `productId` (`productId`),
   CONSTRAINT `productcategory_ibfk_1` FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`),
   CONSTRAINT `productcategory_ibfk_2` FOREIGN KEY (`productId`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `productcategory` */
 
@@ -259,9 +292,10 @@ insert  into `productcategory`(`id`,`categoryId`,`productId`,`uuid`) values
 (41,10,14,'5d8792e8-8a7d-11ef-907d-0ae0afa00364'),
 (56,14,20,'11c53a94-8bcd-11ef-a996-0ae0afa00364'),
 (57,18,20,'11c58971-8bcd-11ef-a996-0ae0afa00364'),
-(59,11,2,'1b3743ab-8bcd-11ef-a996-0ae0afa00364'),
-(60,18,2,'1b37a9bf-8bcd-11ef-a996-0ae0afa00364'),
-(61,13,3,'d9a570de-8bd4-11ef-a996-0ae0afa00364');
+(61,13,3,'d9a570de-8bd4-11ef-a996-0ae0afa00364'),
+(62,11,2,'0058b7e5-8f09-11ef-98bf-0ae0afa00364'),
+(63,18,2,'00591289-8f09-11ef-98bf-0ae0afa00364'),
+(64,14,2,'0059cf2b-8f09-11ef-98bf-0ae0afa00364');
 
 /*Table structure for table `productdesc` */
 
@@ -284,6 +318,38 @@ insert  into `productdesc`(`id`,`productId`,`discount`,`uuid`) values
 (1,2,127,'46bd3154-8afb-11ef-b3f0-0ae0afa00364'),
 (2,3,100,'46be083f-8afb-11ef-b3f0-0ae0afa00364'),
 (4,4,127,'48bfaaff-8afd-11ef-b3f0-0ae0afa00364');
+
+/*Table structure for table `productsstore` */
+
+DROP TABLE IF EXISTS `productsstore`;
+
+CREATE TABLE `productsstore` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `productid` int(20) DEFAULT NULL,
+  `storeId` int(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `productid` (`productid`),
+  KEY `storeId` (`storeId`),
+  CONSTRAINT `productsstore_ibfk_1` FOREIGN KEY (`productid`) REFERENCES `product` (`id`),
+  CONSTRAINT `productsstore_ibfk_2` FOREIGN KEY (`storeId`) REFERENCES `store` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `productsstore` */
+
+insert  into `productsstore`(`id`,`productid`,`storeId`) values 
+(1,2,1),
+(2,3,1),
+(3,4,1),
+(4,5,1),
+(5,6,1),
+(6,7,1),
+(7,8,1),
+(8,9,1),
+(9,11,1),
+(10,12,1),
+(11,14,1),
+(12,16,1),
+(13,20,1);
 
 /*Table structure for table `productsupplier` */
 
@@ -328,6 +394,22 @@ insert  into `roles`(`id`,`name`,`description`,`uuid`) values
 (3,'Admin',NULL,'329b4608-8aff-11ef-b3f0-0ae0afa00364'),
 (4,'Surtidor',NULL,'497669ad-8aff-11ef-b3f0-0ae0afa00364');
 
+/*Table structure for table `store` */
+
+DROP TABLE IF EXISTS `store`;
+
+CREATE TABLE `store` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `name` varchar(155) NOT NULL,
+  `description` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `store` */
+
+insert  into `store`(`id`,`name`,`description`) values 
+(1,'Store Dani Central',NULL);
+
 /*Table structure for table `user` */
 
 DROP TABLE IF EXISTS `user`;
@@ -350,9 +432,9 @@ CREATE TABLE `user` (
 
 insert  into `user`(`id`,`username`,`password`,`createdAt`,`updatedAt`,`peopleId`,`uuid`) values 
 (1,'','','2024-10-20 11:10:40',NULL,1,'d9d6617f-8efd-11ef-98bf-0ae0afa00364'),
-(2,'','','2024-10-20 11:10:44',NULL,2,'dc77a6cd-8efd-11ef-98bf-0ae0afa00364'),
+(2,'','','2024-10-20 11:40:20',NULL,4,'dc77a6cd-8efd-11ef-98bf-0ae0afa00364'),
 (3,'','','2024-10-20 11:11:01',NULL,3,'e660549e-8efd-11ef-98bf-0ae0afa00364'),
-(4,'','','2024-10-20 11:11:14',NULL,4,'edffd5f7-8efd-11ef-98bf-0ae0afa00364');
+(4,'','','2024-10-20 11:40:30',NULL,2,'edffd5f7-8efd-11ef-98bf-0ae0afa00364');
 
 /*Table structure for table `userroles` */
 
@@ -369,7 +451,7 @@ CREATE TABLE `userroles` (
   KEY `userId` (`userId`),
   CONSTRAINT `userroles_ibfk_2` FOREIGN KEY (`rolId`) REFERENCES `roles` (`id`),
   CONSTRAINT `userroles_ibfk_3` FOREIGN KEY (`userId`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `userroles` */
 
@@ -378,7 +460,25 @@ insert  into `userroles`(`id`,`rolId`,`uuid`,`userId`) values
 (2,1,'1a7f75f5-8a7a-11ef-9c33-0ae0afa00364',2),
 (3,1,'1a7f7702-8a7a-11ef-9c33-0ae0afa00364',3),
 (4,2,'1a7f7794-8a7a-11ef-9c33-0ae0afa00364',4),
-(5,2,'a40fbf87-8a7b-11ef-907d-0ae0afa00364',1);
+(5,2,'a40fbf87-8a7b-11ef-907d-0ae0afa00364',1),
+(6,1,'62227167-8f02-11ef-98bf-0ae0afa00364',4);
+
+/*Table structure for table `userstore` */
+
+DROP TABLE IF EXISTS `userstore`;
+
+CREATE TABLE `userstore` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `userId` int(20) DEFAULT NULL,
+  `storeId` int(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `userId` (`userId`),
+  KEY `storeId` (`storeId`),
+  CONSTRAINT `userstore_ibfk_1` FOREIGN KEY (`userId`) REFERENCES `user` (`id`),
+  CONSTRAINT `userstore_ibfk_2` FOREIGN KEY (`storeId`) REFERENCES `store` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `userstore` */
 
 /* Trigger structure for table `category` */
 
