@@ -234,14 +234,14 @@ app.get('/getClients', (req, res) => {
     const search = req.query.search || '';
 
     let query = (`SELECT people.firstName, people.lastName,
-                people.address,documentType.id AS docValue, documentType.type,
-                people.documentNumber,people.phone, roles.id AS roleValue, roles.name,
-                people.id AS valuePerson, people.createdAt, people.updatedAt, people.isActive,
-                people.uuid
-                FROM people
-                INNER JOIN documentType on people.documentTypeId=documentType.id
-                INNER JOIN peopleRol on people.id=peopleRol.peopleId
-                INNER JOIN roles on  peopleRol.rolId=roles.id WHERE roles.id=1
+        people.address, documentType.id AS docValue, documentType.type,
+        people.documentNumber,people.phone, roles.id AS roleValue, roles.name,
+        user.id AS valuePerson, people.createdAt, people.updatedAt, people.isActive
+        FROM people
+        INNER JOIN documentType ON people.documentTypeId=documentType.id
+        INNER JOIN user ON people.id=user.peopleId
+        INNER JOIN userroles ON user.id=userroles.userId
+        INNER JOIN roles ON  userroles.rolId=roles.id WHERE roles.id=1
                 `);
 
     if (search) {
@@ -265,7 +265,7 @@ app.put('/changeStateClient', (req, res) => {
     const value = req.body.state;
     const fechaAct = moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
     
-    db.query('UPDATE people SET updatedAt = ?, isActive = ? WHERE id = ?', [fechaAct, value, idClient], (err, result) => {
+    db.query('UPDATE people SET updatedAt = ?, isActive = ? WHERE id =  (SELECT user.peopleId FROM user WHERE user.id=?)', [fechaAct, value, idClient], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).send('Error al actualizar el estado del cliente');
@@ -330,7 +330,7 @@ app.put('/updateClient',(req,res)=>{
     const fechaAct=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
 
     db.query(`UPDATE people SET firstName = ?, lastName = ?, address = ?, documentTypeId = ?, documentNumber = ?, 
-        phone = ?, updatedAt = ? WHERE id = ?`, 
+        phone = ?, updatedAt = ? WHERE id = (SELECT user.peopleId FROM user WHERE user.id=?)`, 
         [nombre, apellido, direccion, tipoNit, nit, telefono, fechaAct, idCliente], 
         (err, result) => {
           if (err) {

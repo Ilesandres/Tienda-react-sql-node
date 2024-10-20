@@ -27,7 +27,7 @@ CREATE TABLE `category` (
   `uuid` char(36) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `category` */
 
@@ -39,7 +39,8 @@ insert  into `category`(`id`,`name`,`description`,`uuid`) values
 (14,'abarrotes','productos generales de uso diario','2fe1695d-87e5-11ef-9451-0ae0afa00364'),
 (15,'mascotas','alimentos para mascotas','2fe169f3-87e5-11ef-9451-0ae0afa00364'),
 (16,'mecato xunidad','mecato por paquetes unitarios','2fe16a96-87e5-11ef-9451-0ae0afa00364'),
-(17,'ropa','ropas de todo tipo','2fe16b2d-87e5-11ef-9451-0ae0afa00364');
+(17,'ropa','ropas de todo tipo','2fe16b2d-87e5-11ef-9451-0ae0afa00364'),
+(18,'canasta diaria','','3379c83e-8b54-11ef-9886-0ae0afa00364');
 
 /*Table structure for table `documenttype` */
 
@@ -71,6 +72,7 @@ CREATE TABLE `invoice` (
   `updatedAt` datetime DEFAULT NULL,
   `peopleId` int(20) DEFAULT NULL,
   `uuid` char(36) NOT NULL,
+  `total` decimal(10,4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   KEY `statusId` (`statusId`),
@@ -81,9 +83,9 @@ CREATE TABLE `invoice` (
 
 /*Data for the table `invoice` */
 
-insert  into `invoice`(`id`,`statusId`,`createdAt`,`updatedAt`,`peopleId`,`uuid`) values 
-(1,1,'2024-10-11 14:37:58',NULL,1,'51f3c79f-8808-11ef-ade4-0ae0afa00364'),
-(2,2,'2024-10-11 14:38:24',NULL,1,'61648a95-8808-11ef-ade4-0ae0afa00364');
+insert  into `invoice`(`id`,`statusId`,`createdAt`,`updatedAt`,`peopleId`,`uuid`,`total`) values 
+(1,1,'2024-10-11 14:37:58',NULL,1,'51f3c79f-8808-11ef-ade4-0ae0afa00364',NULL),
+(2,2,'2024-10-11 14:38:24',NULL,1,'61648a95-8808-11ef-ade4-0ae0afa00364',NULL);
 
 /*Table structure for table `invoiceproduct` */
 
@@ -187,36 +189,10 @@ CREATE TABLE `people` (
 /*Data for the table `people` */
 
 insert  into `people`(`id`,`firstName`,`lastName`,`address`,`documentTypeId`,`documentNumber`,`phone`,`createdAt`,`updatedAt`,`isActive`,`uuid`) values 
-(1,'Juan','Perez','Calle 45 22-33',4,'1234567890','32132145','2024-10-14 17:09:19','2024-10-10 16:33:31',0,'f5e18d0a-8a78-11ef-9c33-0ae0afa00364'),
+(1,'Juan','Perez','Calle 45 22-33',4,'1234567890','32132145','2024-10-15 19:05:18','2024-10-15 19:05:18',1,'f5e18d0a-8a78-11ef-9c33-0ae0afa00364'),
 (2,'Camilo','Rendon','Vereda Palermo norte',5,'12536842','3215324830','2024-10-14 17:09:19','2024-10-10 16:33:35',1,'f5e21893-8a78-11ef-9c33-0ae0afa00364'),
-(3,'Camilo','Calderon','calle 5 #3 sur',5,'1256891','3227569852','2024-10-14 17:09:19','2024-10-10 16:33:32',1,'f5e2198a-8a78-11ef-9c33-0ae0afa00364'),
+(3,'Camilo','Calderon','calle 5 #3 sur',5,'1256891','3227569852','2024-10-15 19:05:21','2024-10-15 19:05:21',1,'f5e2198a-8a78-11ef-9c33-0ae0afa00364'),
 (4,'Sarah','mandrogan','centro',5,'1245002','3226440156','2024-10-14 17:09:19',NULL,0,'f5e21a2f-8a78-11ef-9c33-0ae0afa00364');
-
-/*Table structure for table `peoplerol` */
-
-DROP TABLE IF EXISTS `peoplerol`;
-
-CREATE TABLE `peoplerol` (
-  `id` int(20) NOT NULL AUTO_INCREMENT,
-  `peopleId` int(20) DEFAULT NULL,
-  `rolId` int(20) DEFAULT NULL,
-  `uuid` char(36) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uuid` (`uuid`),
-  KEY `peopleId` (`peopleId`),
-  KEY `rolId` (`rolId`),
-  CONSTRAINT `peoplerol_ibfk_1` FOREIGN KEY (`peopleId`) REFERENCES `people` (`id`),
-  CONSTRAINT `peoplerol_ibfk_2` FOREIGN KEY (`rolId`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-/*Data for the table `peoplerol` */
-
-insert  into `peoplerol`(`id`,`peopleId`,`rolId`,`uuid`) values 
-(1,1,1,'1a7ecf23-8a7a-11ef-9c33-0ae0afa00364'),
-(2,2,1,'1a7f75f5-8a7a-11ef-9c33-0ae0afa00364'),
-(3,3,1,'1a7f7702-8a7a-11ef-9c33-0ae0afa00364'),
-(4,4,2,'1a7f7794-8a7a-11ef-9c33-0ae0afa00364'),
-(5,1,2,'a40fbf87-8a7b-11ef-907d-0ae0afa00364');
 
 /*Table structure for table `product` */
 
@@ -233,13 +209,13 @@ CREATE TABLE `product` (
   `uuid` char(36) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `product` */
 
 insert  into `product`(`id`,`name`,`stock`,`price`,`createdAt`,`updatedAt`,`isActive`,`uuid`) values 
-(2,'Leche',25,4000,'2024-10-02 10:01:00','2024-10-02 10:01:00',1,'52a9da61-8a7c-11ef-907d-0ae0afa00364'),
-(3,'Pollo (kg)',15,8000,'2024-10-02 10:02:00','2024-10-02 10:02:00',1,'52a9ed50-8a7c-11ef-907d-0ae0afa00364'),
+(2,'Leche',25,4000,'2024-10-02 10:01:00','2024-10-16 10:39:23',1,'52a9da61-8a7c-11ef-907d-0ae0afa00364'),
+(3,'Pollo (kg)',15,8000,'2024-10-02 10:02:00','2024-10-16 10:39:37',1,'52a9ed50-8a7c-11ef-907d-0ae0afa00364'),
 (4,'Carne de Res (kg)',10,18000,'2024-10-02 10:03:00','2024-10-02 10:03:00',1,'52a9ee30-8a7c-11ef-907d-0ae0afa00364'),
 (5,'Manzana (unidad)',50,2000,'2024-10-02 10:04:00','2024-10-02 10:04:00',1,'52a9eed3-8a7c-11ef-907d-0ae0afa00364'),
 (6,'Jugo (botella)',20,3000,'2024-10-02 10:05:00','2024-10-02 10:05:00',1,'52a9ef69-8a7c-11ef-907d-0ae0afa00364'),
@@ -248,7 +224,9 @@ insert  into `product`(`id`,`name`,`stock`,`price`,`createdAt`,`updatedAt`,`isAc
 (9,'Hueso perro',10,2500,'2024-10-02 10:08:00','2024-10-02 10:08:00',1,'52a9f123-8a7c-11ef-907d-0ae0afa00364'),
 (11,'Galletas xunidad',18,1200,'2024-10-02 16:33:00',NULL,1,'52a9f1b4-8a7c-11ef-907d-0ae0afa00364'),
 (12,'agua xL(botella)',18,1500,'2024-10-03 21:26:59',NULL,1,'52a9f24e-8a7c-11ef-907d-0ae0afa00364'),
-(14,'Arroz 1000g',10,4500,'2024-10-10 16:35:32',NULL,1,'52a9f2df-8a7c-11ef-907d-0ae0afa00364');
+(14,'Arroz 1000g',10,4500,'2024-10-10 16:35:32',NULL,1,'52a9f2df-8a7c-11ef-907d-0ae0afa00364'),
+(16,'Panela x1kl',12,4500,'2024-10-15 19:21:48',NULL,1,'a1eee3af-8b54-11ef-9886-0ae0afa00364'),
+(20,'Panela x1kl',12,4500,'2024-10-16 09:43:55',NULL,1,'11c3b277-8bcd-11ef-a996-0ae0afa00364');
 
 /*Table structure for table `productcategory` */
 
@@ -265,13 +243,11 @@ CREATE TABLE `productcategory` (
   KEY `productId` (`productId`),
   CONSTRAINT `productcategory_ibfk_1` FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`),
   CONSTRAINT `productcategory_ibfk_2` FOREIGN KEY (`productId`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `productcategory` */
 
 insert  into `productcategory`(`id`,`categoryId`,`productId`,`uuid`) values 
-(29,11,2,'5d877d12-8a7d-11ef-907d-0ae0afa00364'),
-(30,16,3,'5d878db0-8a7d-11ef-907d-0ae0afa00364'),
 (31,13,4,'5d878e8b-8a7d-11ef-907d-0ae0afa00364'),
 (32,12,5,'5d878f21-8a7d-11ef-907d-0ae0afa00364'),
 (33,11,6,'5d878fb0-8a7d-11ef-907d-0ae0afa00364'),
@@ -280,7 +256,12 @@ insert  into `productcategory`(`id`,`categoryId`,`productId`,`uuid`) values
 (36,15,9,'5d87914c-8a7d-11ef-907d-0ae0afa00364'),
 (38,16,11,'5d8791d3-8a7d-11ef-907d-0ae0afa00364'),
 (39,11,12,'5d879260-8a7d-11ef-907d-0ae0afa00364'),
-(41,10,14,'5d8792e8-8a7d-11ef-907d-0ae0afa00364');
+(41,10,14,'5d8792e8-8a7d-11ef-907d-0ae0afa00364'),
+(56,14,20,'11c53a94-8bcd-11ef-a996-0ae0afa00364'),
+(57,18,20,'11c58971-8bcd-11ef-a996-0ae0afa00364'),
+(59,11,2,'1b3743ab-8bcd-11ef-a996-0ae0afa00364'),
+(60,18,2,'1b37a9bf-8bcd-11ef-a996-0ae0afa00364'),
+(61,13,3,'d9a570de-8bd4-11ef-a996-0ae0afa00364');
 
 /*Table structure for table `productdesc` */
 
@@ -311,20 +292,20 @@ DROP TABLE IF EXISTS `productsupplier`;
 CREATE TABLE `productsupplier` (
   `id` int(20) NOT NULL AUTO_INCREMENT,
   `productId` int(20) DEFAULT NULL,
-  `peopleId` int(20) DEFAULT NULL,
   `uuid` char(36) NOT NULL,
+  `userId` int(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   KEY `productId` (`productId`),
-  KEY `peopleId` (`peopleId`),
+  KEY `userId` (`userId`),
   CONSTRAINT `productsupplier_ibfk_1` FOREIGN KEY (`productId`) REFERENCES `product` (`id`),
-  CONSTRAINT `productsupplier_ibfk_2` FOREIGN KEY (`peopleId`) REFERENCES `people` (`id`)
+  CONSTRAINT `productsupplier_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `productsupplier` */
 
-insert  into `productsupplier`(`id`,`productId`,`peopleId`,`uuid`) values 
-(1,2,1,'2a310bab-8afe-11ef-b3f0-0ae0afa00364');
+insert  into `productsupplier`(`id`,`productId`,`uuid`,`userId`) values 
+(1,2,'2a310bab-8afe-11ef-b3f0-0ae0afa00364',NULL);
 
 /*Table structure for table `roles` */
 
@@ -363,9 +344,41 @@ CREATE TABLE `user` (
   UNIQUE KEY `uuid` (`uuid`),
   KEY `peopleId` (`peopleId`),
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`peopleId`) REFERENCES `people` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `user` */
+
+insert  into `user`(`id`,`username`,`password`,`createdAt`,`updatedAt`,`peopleId`,`uuid`) values 
+(1,'','','2024-10-20 11:10:40',NULL,1,'d9d6617f-8efd-11ef-98bf-0ae0afa00364'),
+(2,'','','2024-10-20 11:10:44',NULL,2,'dc77a6cd-8efd-11ef-98bf-0ae0afa00364'),
+(3,'','','2024-10-20 11:11:01',NULL,3,'e660549e-8efd-11ef-98bf-0ae0afa00364'),
+(4,'','','2024-10-20 11:11:14',NULL,4,'edffd5f7-8efd-11ef-98bf-0ae0afa00364');
+
+/*Table structure for table `userroles` */
+
+DROP TABLE IF EXISTS `userroles`;
+
+CREATE TABLE `userroles` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `rolId` int(20) DEFAULT NULL,
+  `uuid` char(36) NOT NULL,
+  `userId` int(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `rolId` (`rolId`),
+  KEY `userId` (`userId`),
+  CONSTRAINT `userroles_ibfk_2` FOREIGN KEY (`rolId`) REFERENCES `roles` (`id`),
+  CONSTRAINT `userroles_ibfk_3` FOREIGN KEY (`userId`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+/*Data for the table `userroles` */
+
+insert  into `userroles`(`id`,`rolId`,`uuid`,`userId`) values 
+(1,1,'1a7ecf23-8a7a-11ef-9c33-0ae0afa00364',1),
+(2,1,'1a7f75f5-8a7a-11ef-9c33-0ae0afa00364',2),
+(3,1,'1a7f7702-8a7a-11ef-9c33-0ae0afa00364',3),
+(4,2,'1a7f7794-8a7a-11ef-9c33-0ae0afa00364',4),
+(5,2,'a40fbf87-8a7b-11ef-907d-0ae0afa00364',1);
 
 /* Trigger structure for table `category` */
 
@@ -479,38 +492,6 @@ END */$$
 
 DELIMITER ;
 
-/* Trigger structure for table `peoplerol` */
-
-DELIMITER $$
-
-/*!50003 DROP TRIGGER*//*!50032 IF EXISTS */ /*!50003 `before_insert_peopl_rol` */$$
-
-/*!50003 CREATE */ /*!50017 DEFINER = 'root'@'localhost' */ /*!50003 TRIGGER `before_insert_peopl_rol` BEFORE INSERT ON `peoplerol` FOR EACH ROW 
-BEGIN
-	IF NEW.uuid IS NULL OR NEW.uuid='' THEN 
-		SET NEW.uuid=UUID();
-	END IF;
-END */$$
-
-
-DELIMITER ;
-
-/* Trigger structure for table `peoplerol` */
-
-DELIMITER $$
-
-/*!50003 DROP TRIGGER*//*!50032 IF EXISTS */ /*!50003 `before_insert_people_rol` */$$
-
-/*!50003 CREATE */ /*!50017 DEFINER = 'root'@'localhost' */ /*!50003 TRIGGER `before_insert_people_rol` BEFORE INSERT ON `peoplerol` FOR EACH ROW 
-BEGIN
-	IF NEW.uuid IS NULL OR NEW.uuid='' THEN 
-		SET NEW.uuid=UUID();
-	END IF;
-END */$$
-
-
-DELIMITER ;
-
 /* Trigger structure for table `product` */
 
 DELIMITER $$
@@ -600,6 +581,38 @@ DELIMITER $$
 /*!50003 CREATE */ /*!50017 DEFINER = 'root'@'localhost' */ /*!50003 TRIGGER `before_insert_user` BEFORE INSERT ON `user` FOR EACH ROW 
 BEGIN
 	IF NEW.uuid IS NULL OR NEW.uuid='' THEN
+		SET NEW.uuid=UUID();
+	END IF;
+END */$$
+
+
+DELIMITER ;
+
+/* Trigger structure for table `userroles` */
+
+DELIMITER $$
+
+/*!50003 DROP TRIGGER*//*!50032 IF EXISTS */ /*!50003 `before_insert_peopl_rol` */$$
+
+/*!50003 CREATE */ /*!50017 DEFINER = 'root'@'localhost' */ /*!50003 TRIGGER `before_insert_peopl_rol` BEFORE INSERT ON `userroles` FOR EACH ROW 
+BEGIN
+	IF NEW.uuid IS NULL OR NEW.uuid='' THEN 
+		SET NEW.uuid=UUID();
+	END IF;
+END */$$
+
+
+DELIMITER ;
+
+/* Trigger structure for table `userroles` */
+
+DELIMITER $$
+
+/*!50003 DROP TRIGGER*//*!50032 IF EXISTS */ /*!50003 `before_insert_people_rol` */$$
+
+/*!50003 CREATE */ /*!50017 DEFINER = 'root'@'localhost' */ /*!50003 TRIGGER `before_insert_people_rol` BEFORE INSERT ON `userroles` FOR EACH ROW 
+BEGIN
+	IF NEW.uuid IS NULL OR NEW.uuid='' THEN 
 		SET NEW.uuid=UUID();
 	END IF;
 END */$$
