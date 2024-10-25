@@ -260,7 +260,7 @@ app.get('/getClients', (req, res) => {
             console.log(err);
             res.status(500).send('Error en la consulta');
         } else {
-            res.send(result);
+            res.status(200).send(result);
         }
     });
 });
@@ -347,19 +347,47 @@ app.put('/updateClient',(req,res)=>{
 })
 
 
+
+/*seccion invoice */
+
+app.get('/getPaymentMethod',(req,res)=>{
+    db.query('SELECT id AS methodValue, method FROM paymentMethod ',(err,result)=>{
+        if(err){
+            console.log(err);
+            res.status(500).send('error de servidor');
+        }else{
+            res.status(200).send(result);
+        }
+    })
+})
+
+app.get('/getInvoice',(req,res)=>{
+    const {search}= req.body.search || '';
+    db.query('SELECT *FROM invoice',(err,result)=>{
+        if(err){
+            console.log(err);
+            res.status(500).send('error de consulta de las facturas');
+        }else{
+            res.status(200).send(result);
+        }
+    })
+})
+
 app.post('/addInvoice',(req,res)=>{
-    const{productos, cliente, total, estado}=req.body
+    const{productos, cliente, total, estado, metodoPago}=req.body
     const products=[];
     productos.map((producto)=>{
         products.push(producto.productId);
     })
-    console.log('productos :')
-    console.log(productos)
+    console.log('productos : ');
+    console.log(productos);
     console.log(products);
     console.log('cliente '+cliente)
     console.log('total : '+total)
     console.log('estado '+estado)
+    console.log('metodo pago '+metodoPago)
 })
+
 
 app.get('/getStatusInvoice',(req,res)=>{
     db.query(`SELECT invoicestatus.id as statusValue, invoicestatus.name, invoicestatus.description, invoicestatus.uuid

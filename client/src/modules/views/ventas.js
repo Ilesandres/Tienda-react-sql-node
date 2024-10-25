@@ -17,6 +17,8 @@ const Ventas = () => {
     const [productoSelectCategoria, setProductSelectCategoria]=useState('');
     const [productoSelectCategoriaId, setProductSelectCategoriaId]=useState(0);
     const [modifyIndexProduct, setModifyIndexProduct]=useState();
+    const [metodoPago, setMetodoPago]=useState(0);
+    const [metodosDePago,setMetodosDePago]=useState([]);
     {/*## UUID */}
     const [estadoFactura, setEstadoFactura]=useState(0);
 
@@ -47,6 +49,10 @@ const Ventas = () => {
             alert('el cliente no esta definido');
             return;
         }
+        if(typeof metodoPago==='undefined' || metodoPago===0 || metodoPago==='' || isNaN(metodoPago)){
+            alert('el metodo de pago es obligatorio');
+            return;
+        }
         if(typeof estadoFactura==='undefined' || estadoFactura==='' || isNaN(estadoFactura) || estadoFactura===0){
             alert('debes seleccionar un estado en la factura');
             return;
@@ -72,12 +78,12 @@ const Ventas = () => {
             cliente:idClienteSelect,
             estado:estadoFactura,
             total:total,
-            productos:productosAdd
+            productos:productosAdd,
+            metodoPago:metodoPago
          }).then((res)=>{
             clearProductsAdd();
             clearDataClient();
          })
-          
     }
 
     /*modal */
@@ -91,6 +97,14 @@ const Ventas = () => {
             getClients();
         }
         modal.show();
+    }
+
+    const getPaymentMethod=()=>{
+        Axios.get('http://localhost:3001/getPaymentMethod').then((res)=>{
+            if(res){
+                setMetodosDePago(res.data);
+            }
+         })
     }
 
 
@@ -302,6 +316,7 @@ const Ventas = () => {
 
     useEffect(()=>{
         getStatus();
+        getPaymentMethod();
     },[])
 
     const formatCurrency = (value) => {
@@ -408,7 +423,6 @@ const Ventas = () => {
                         <button type="button" onClick={()=>{clearDataClient()}} className="client-btn-ventas"><img src="https://img.icons8.com/color/48/cancel--v1.png" alt="delete" /></button>
                         <button type="button"  className="client-btn-ventas"><img src="https://img.icons8.com/color/48/print.png" alt="print" /></button>
                     </div>
-
                 </div>
                 <div>
                      <div className='mb-3'>
@@ -417,6 +431,16 @@ const Ventas = () => {
                             <option value={0}> selecciona</option>
                             {statusInvoice.map((estado, index)=>(
                                 <option key={index} value={estado.statusValue}>{estado.name}</option>
+                            ))}
+                        
+                    </select>
+                    </div>
+                    <div className='mb-3'>
+                        <label>metodo de pago</label>
+                        <select className='form-select' value={metodoPago} onChange={(event)=>{setMetodoPago(event.target.value)}}>
+                            <option value={0}> selecciona</option>
+                            {metodosDePago.map((metodo, index)=>(
+                                <option key={index} value={metodo.methodValue}>{metodo.method}</option>
                             ))}
                         
                     </select>

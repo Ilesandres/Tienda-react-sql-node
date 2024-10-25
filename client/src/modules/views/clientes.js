@@ -42,6 +42,7 @@ const Clientes = () => {
           idCliente:idClienteEditar
         }).then(()=>{
           alert('cliente editado con exito')
+          loadClient();
           setAgregarCliente(false);
         })
       }
@@ -60,6 +61,7 @@ const Clientes = () => {
           telefono:telefonoCliente
         }).then(()=>{
           alert('cliente agregado con exito');
+          loadClient();
           setAgregarCliente(false);
         })
       }else{
@@ -92,6 +94,7 @@ const Clientes = () => {
         state:value,
       }).then(()=>{
         console.log('changed '+value);
+        loadClient();
       });
 
     }
@@ -107,6 +110,7 @@ const Clientes = () => {
         nombre:nombreAgregarTipoNit
       }).then(()=>{
         alert('tipo agregado correctamente ');
+        loadTipoNit();
         setAgregarTipoNit(false);
       })
     }
@@ -196,6 +200,7 @@ const Clientes = () => {
         setTiponitCliente(clienteEditar.docValue);
         setTelefonoCliente(clienteEditar.phone);
         setIdClientEditar(clienteEditar.valuePerson);
+        loadClient();
       }
       
    },[clienteEditar])
@@ -207,9 +212,13 @@ const Clientes = () => {
       }
   
     },[back,navigate]);
+
+    useEffect(()=>{
+      loadClient();
+    loadTipoNit();
+    },[])
       
-   loadClient();
-  loadTipoNit();
+   
         
   
     return (
