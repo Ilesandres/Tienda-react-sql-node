@@ -244,7 +244,7 @@ app.get('/getClients', (req, res) => {
         user.id AS valuePerson, people.createdAt, people.updatedAt, people.isActive
         FROM people
         INNER JOIN documentType ON people.documentTypeId=documentType.id
-        INNER JOIN user ON people.id=user.peopleId
+        INNER JOIN user ON people.userId=user.id
         INNER JOIN userroles ON user.id=userroles.userId
         INNER JOIN roles ON  userroles.rolId=roles.id WHERE roles.id=1
                 `);
@@ -312,16 +312,39 @@ app.post('/addCliente',(req,res)=>{
     const tipoNit =req.body.tipoNit;
     const phone =req.body.telefono;
     const rol =1;
+    const username='';
+    const password='';
     const is_Active =true;
 
-    db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive, idRol) 
-    VALUES (?, ?, ?, ?, ?, ?, ?,?)`, [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active,rol], (err, result) => {
-    if (err) {
-        console.log(err);
-    } else {
-                res.send('Cliente agregado con éxito');
-    }
-})
+    db.query(`INSERT INTO  user(username, password) VALUES(?,?)`,[username,password],(err1,result1)=>{
+        if(err1){
+            console.log(err1);
+            res.status(500).send('error al crear el usuario');
+        }else{
+            const idUser=result1.insertId;
+
+                db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive,userId) 
+                VALUES (?, ?, ?, ?, ?, ?, ?,?)`, [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active,idUser], (err, result) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send('error al insertar la persona')
+                } else {
+                    
+                    db.query(`INSERT INTO userroles(rolId, userId) VALUES(?,?)`,[rol,idUser],(err2, rsult2)=>{
+                        if(err2){
+                            console.log(err2);
+                            res.status(500).send('error al insertar el rol');
+                        }else{
+                            res.status(200).send('Cliente agregado con éxito');
+                        }
+                    })
+                            
+                }
+            })
+        }
+    })
+
+
 })
 
 app.put('/updateClient',(req,res)=>{
