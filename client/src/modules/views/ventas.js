@@ -83,6 +83,10 @@ const Ventas = () => {
          }).then((res)=>{
             clearProductsAdd();
             clearDataClient();
+         }).catch((err)=>{
+            if(err.status==400){
+                alert(err.response.data.message);
+            }
          })
     }
 

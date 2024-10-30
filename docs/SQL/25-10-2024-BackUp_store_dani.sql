@@ -83,13 +83,17 @@ CREATE TABLE `invoice` (
   CONSTRAINT `invoice_ibfk_2` FOREIGN KEY (`statusId`) REFERENCES `invoicestatus` (`id`),
   CONSTRAINT `invoice_ibfk_4` FOREIGN KEY (`paymentMethod`) REFERENCES `paymentmethod` (`id`),
   CONSTRAINT `invoice_ibfk_5` FOREIGN KEY (`userId`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `invoice` */
 
 insert  into `invoice`(`id`,`statusId`,`createdAt`,`updatedAt`,`uuid`,`total`,`paymentMethod`,`userId`) values 
 (1,1,'2024-10-22 13:37:16',NULL,'51f3c79f-8808-11ef-ade4-0ae0afa00364',NULL,1,1),
-(2,2,'2024-10-22 13:37:22',NULL,'61648a95-8808-11ef-ade4-0ae0afa00364',NULL,1,2);
+(2,2,'2024-10-22 13:37:22',NULL,'61648a95-8808-11ef-ade4-0ae0afa00364',NULL,1,2),
+(4,1,'2024-10-30 12:30:48',NULL,'b3dc508f-96e4-11ef-b93c-0ae0afa00364',8000.0000,1,8),
+(5,1,'2024-10-30 12:32:30',NULL,'f0ba3641-96e4-11ef-b93c-0ae0afa00364',20000.0000,1,8),
+(6,1,'2024-10-30 12:35:36',NULL,'5f9282d3-96e5-11ef-b93c-0ae0afa00364',16000.0000,1,8),
+(7,1,'2024-10-30 12:36:34',NULL,'822440fe-96e5-11ef-b93c-0ae0afa00364',8000.0000,1,8);
 
 /*Table structure for table `invoiceproduct` */
 
@@ -100,19 +104,24 @@ CREATE TABLE `invoiceproduct` (
   `productId` int(20) DEFAULT NULL,
   `invoiceId` int(20) DEFAULT NULL,
   `uuid` char(36) DEFAULT NULL,
-  `cant` int(10) DEFAULT NULL,
+  `quantity` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid` (`uuid`),
   KEY `productId` (`productId`),
   KEY `invoiceId` (`invoiceId`),
   CONSTRAINT `invoiceproduct_ibfk_1` FOREIGN KEY (`productId`) REFERENCES `product` (`id`),
   CONSTRAINT `invoiceproduct_ibfk_2` FOREIGN KEY (`invoiceId`) REFERENCES `invoice` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `invoiceproduct` */
 
-insert  into `invoiceproduct`(`id`,`productId`,`invoiceId`,`uuid`,`cant`) values 
-(1,11,1,'aa1651a3-880b-11ef-ade4-0ae0afa00364',2);
+insert  into `invoiceproduct`(`id`,`productId`,`invoiceId`,`uuid`,`quantity`) values 
+(1,11,1,'aa1651a3-880b-11ef-ade4-0ae0afa00364',2),
+(2,2,4,'b3dcb730-96e4-11ef-b93c-0ae0afa00364',2),
+(3,2,5,'f0babfeb-96e4-11ef-b93c-0ae0afa00364',1),
+(4,3,5,'f0bb8a0a-96e4-11ef-b93c-0ae0afa00364',2),
+(5,3,6,'5f92e1ef-96e5-11ef-b93c-0ae0afa00364',2),
+(6,3,7,'8224b1a1-96e5-11ef-b93c-0ae0afa00364',1);
 
 /*Table structure for table `invoicestatus` */
 
@@ -227,7 +236,7 @@ CREATE TABLE `people` (
 
 insert  into `people`(`id`,`firstName`,`lastName`,`address`,`documentTypeId`,`documentNumber`,`phone`,`createdAt`,`updatedAt`,`isActive`,`uuid`,`userId`) values 
 (1,'Juan','Perez','Calle 45 22-33',4,'1234567890','32132145','2024-10-29 16:08:59','2024-10-24 15:25:07',1,'f5e18d0a-8a78-11ef-9c33-0ae0afa00364',3),
-(2,'Camilo','Rendon','Vereda Palermo norte',5,'12536842','3215324830','2024-10-29 16:09:04','2024-10-24 15:25:13',1,'f5e21893-8a78-11ef-9c33-0ae0afa00364',4),
+(2,'Camilo','Rendon ','Vereda Palermo norte',5,'12536842','3215324830','2024-10-30 10:19:11','2024-10-30 10:19:11',1,'f5e21893-8a78-11ef-9c33-0ae0afa00364',4),
 (3,'Camilo ','Calderon','calle 5 #3 sur',5,'1256891','3227569852','2024-10-29 16:08:46','2024-10-20 11:43:12',1,'f5e2198a-8a78-11ef-9c33-0ae0afa00364',1),
 (4,'Sarah M','mandrogan','centro',5,'1245002','3226440156','2024-10-29 16:08:55','2024-10-24 15:25:10',1,'f5e21a2f-8a78-11ef-9c33-0ae0afa00364',2),
 (5,'Andres','Sambony','mocoa_putumayo_colombia',4,'12345686','3227349082','2024-10-29 17:37:15',NULL,1,'58cfec2d-9646-11ef-89a7-0ae0afa00364',5),
@@ -253,8 +262,8 @@ CREATE TABLE `product` (
 /*Data for the table `product` */
 
 insert  into `product`(`id`,`name`,`stock`,`price`,`createdAt`,`updatedAt`,`isActive`,`uuid`) values 
-(2,'Leche',25,4000,'2024-10-02 10:01:00','2024-10-24 15:26:30',1,'52a9da61-8a7c-11ef-907d-0ae0afa00364'),
-(3,'Pollo (kg)',15,8000,'2024-10-02 10:02:00','2024-10-16 10:39:37',1,'52a9ed50-8a7c-11ef-907d-0ae0afa00364'),
+(2,'Leche',27,4000,'2024-10-02 10:01:00','2024-10-30 12:31:46',1,'52a9da61-8a7c-11ef-907d-0ae0afa00364'),
+(3,'Pollo (kg)',9,8000,'2024-10-02 10:02:00','2024-10-16 10:39:37',1,'52a9ed50-8a7c-11ef-907d-0ae0afa00364'),
 (4,'Carne de Res (kg)',10,18000,'2024-10-02 10:03:00','2024-10-02 10:03:00',1,'52a9ee30-8a7c-11ef-907d-0ae0afa00364'),
 (5,'Manzana (unidad)',50,2000,'2024-10-02 10:04:00','2024-10-02 10:04:00',1,'52a9eed3-8a7c-11ef-907d-0ae0afa00364'),
 (6,'Jugo (botella)',20,3000,'2024-10-02 10:05:00','2024-10-20 12:30:14',1,'52a9ef69-8a7c-11ef-907d-0ae0afa00364'),
@@ -282,7 +291,7 @@ CREATE TABLE `productcategory` (
   KEY `productId` (`productId`),
   CONSTRAINT `productcategory_ibfk_1` FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`),
   CONSTRAINT `productcategory_ibfk_2` FOREIGN KEY (`productId`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `productcategory` */
 
@@ -299,9 +308,9 @@ insert  into `productcategory`(`id`,`categoryId`,`productId`,`uuid`) values
 (56,14,20,'11c53a94-8bcd-11ef-a996-0ae0afa00364'),
 (57,18,20,'11c58971-8bcd-11ef-a996-0ae0afa00364'),
 (61,13,3,'d9a570de-8bd4-11ef-a996-0ae0afa00364'),
-(62,11,2,'0058b7e5-8f09-11ef-98bf-0ae0afa00364'),
-(63,18,2,'00591289-8f09-11ef-98bf-0ae0afa00364'),
-(64,14,2,'0059cf2b-8f09-11ef-98bf-0ae0afa00364');
+(65,14,2,'d65bd17e-96e4-11ef-b93c-0ae0afa00364'),
+(66,11,2,'d65cafb2-96e4-11ef-b93c-0ae0afa00364'),
+(67,18,2,'d65cfdea-96e4-11ef-b93c-0ae0afa00364');
 
 /*Table structure for table `productdesc` */
 

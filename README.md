@@ -4,6 +4,13 @@ codigo libre de una tienda online, las tecnologias usadas son react(axios), node
 ```
 Este es un proyecto de tienda a escala media que aun se encuentra en desarrollo el, la version final sera marcada por medio de este mismo readme con una imagen o texto que lo indique, por lo pronto el sistema ya puede ser usado conjunto a la base de datos incluido en este mismo repositorio, para desarrollo de sistemas a la medida puedes buscar mis metodos de contacto en mi perfil ✋, la contraseña y usuario mostrado a continuacion aun no estan habilitadas
 
+``modifica el usuario y la contrseña del server(back) para un correcto funionamiento del programa modifica de acuerdo a las credenciales de tu servidor, local o remoto``
+
+`
+default user: root
+dafault passwor:' '
+`
+
 
 usuario Admin:<br>
   ``` 

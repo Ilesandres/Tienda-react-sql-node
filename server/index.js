@@ -4,7 +4,9 @@ const mysql=require('mysql2');
 const cors=require("cors");
 const http=require("http");
 const socketIo=require("socket.io");
-const moment=require('moment-timezone')
+const moment=require('moment-timezone');
+const { resolve } = require("path");
+const { rejects } = require("assert");
 
 
 app.use(cors(
@@ -358,11 +360,12 @@ app.put('/updateClient',(req,res)=>{
     const fechaAct=moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
 
     db.query(`UPDATE people SET firstName = ?, lastName = ?, address = ?, documentTypeId = ?, documentNumber = ?, 
-        phone = ?, updatedAt = ? WHERE id = (SELECT user.peopleId FROM user WHERE user.id=?)`, 
+        phone = ?, updatedAt = ? WHERE userId = ?`, 
         [nombre, apellido, direccion, tipoNit, nit, telefono, fechaAct, idCliente], 
         (err, result) => {
           if (err) {
               console.log(err);
+              res.status(500).send('error')
           } else {
               res.send('Cliente editado con éxito');
           }
@@ -396,20 +399,107 @@ app.get('/getInvoice',(req,res)=>{
     })
 })
 
-app.post('/addInvoice',(req,res)=>{
-    const{productos, cliente, total, estado, metodoPago}=req.body
-    const products=[];
-    productos.map((producto)=>{
+
+app.post('/addInvoice', async (req, res) => {
+    const { productos, cliente, total, estado, metodoPago } = req.body;
+    const cantproduct=[];
+    const products = [];
+    productos.map((producto) => {
         products.push(producto.productId);
-    })
-    console.log('productos : ');
-    console.log(productos);
-    console.log(products);
-    console.log('cliente '+cliente)
-    console.log('total : '+total)
-    console.log('estado '+estado)
-    console.log('metodo pago '+metodoPago)
-})
+        cantproduct.push(producto.quantity);
+    });
+
+    try {
+        const stockActual = await Promise.all(
+            products.map((productId) => {
+                return new Promise((resolve, reject) => {
+                    db.query(`SELECT stock FROM product WHERE id=?`, [productId], (err, result) => {
+                        if (err) {
+                            reject('Error de stocks');
+                        } else {
+                            resolve(result[0]?.stock);
+                        }
+                    });
+                });
+            })
+        )
+
+        let stockAvalaible=true;
+        for(let i=0; i<products.length; i++){
+           if(cantproduct[i]>stockActual[i]){
+            stockAvalaible=false;
+            break;
+           }
+        }
+
+        if(!stockAvalaible){
+            return res.status(400).send({message:'insuficient stock'});
+        }
+        
+        
+        try {
+                     await Promise.all(
+            products.map((productId, index)=>{
+                return new Promise((resolve, reject) => {
+                    const newStock=stockActual[index]-cantproduct[index];
+                    const updateProduct=`UPDATE product SET stock=? WHERE id=?`;
+                    db.query(updateProduct,[newStock,productId],(err,result)=>{
+                        if(err){
+                            reject('error updating stock')
+                        }else{
+                            resolve(result);
+                        }
+                    })
+                })
+            })
+         )
+         
+                const insertInvoice=`INSERT INTO invoice(statusId,total,paymentMethod, userId) VALUES(?,?,?,?)`;
+                const invoiceResult=await new Promise((resolve, reject) => {
+                    db.query(insertInvoice,[estado,total,metodoPago,cliente],(err,result)=>{
+                    if(err){
+                        reject('error al crear la factura');
+                    }else{
+                        resolve(result)
+                    }
+                });
+                });
+                const invoiceId=invoiceResult.insertId;
+                const insertProductInvoice=`INSERT INTO invoiceproduct(productId,invoiceId, quantity) VALUES(?,?,?)`;
+                try {
+                    await Promise.all(
+                        products.map((productId,index)=>{
+                            return new Promise((resolve, reject) => {
+                                db.query(insertProductInvoice,[productId,invoiceId,cantproduct[index]],(err,result)=>{
+                                    if(err){
+                                        reject('error al insertar los productos');
+                                    }else{
+                                        resolve(result);
+                                    }
+                                })
+                            })
+                        })
+                    )
+                    res.status(200).send({ message: 'Invoice processed successfully', stockActual });
+                } catch (error) {
+                    console.log(error);
+                }
+         
+        } catch (error) {
+            
+            console.log(error);
+            res.status(500).send('err');
+        }
+
+        
+
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+});
+
 
 
 app.get('/getStatusInvoice',(req,res)=>{
