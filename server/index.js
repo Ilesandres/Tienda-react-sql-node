@@ -55,6 +55,8 @@ app.get('/leerCategorias',(req,res)=>{
 /*productos */
 app.post('/addProduct', (req, res) => {
     const { nombre, stock, precio, category, isActivo } = req.body;
+    const idTienda=1;
+
 
     db.query(`INSERT INTO product (name, stock, price, isActive) VALUES (?,?,?,?)`, 
     [nombre, stock, precio, isActivo], 
@@ -80,7 +82,16 @@ app.post('/addProduct', (req, res) => {
 
         Promise.all(queries)
             .then(() => {
-                res.status(200).send('Producto y categorías insertados correctamente');
+
+                db.query(`INSERT INTO productsstore(productId, storeId) VALUES(?,?)`,[productId,idTienda],(err2,result2)=>{
+                    if(err2){
+                        console.log(err2)
+                        res.status(500).send('error');
+                    }else{
+                        res.status(200).send('Producto y categorías insertados correctamente');
+                    }
+                })
+                
             })
             .catch(error => {
                 console.error(error);
@@ -146,23 +157,35 @@ app.delete('/deleteProduct', (req, res) => {
     if (!idProduct) {
         return res.status(400).send('ID de producto es requerido');
     }
+
+
     db.query(`DELETE FROM productCategory WHERE productId = ?`, [idProduct], (err, result) => {
         if (err) {
             console.error('Error al eliminar de PRODUCT_CATEGORY:', err);
             return res.status(500).send('Error al eliminar la categoría del producto');
         }
 
-        db.query(`DELETE FROM product WHERE id = ?`, [idProduct], (err2, result2) => {
+
+        db.query(`DELETE FROM productsstore WHERE productId = ?`, [idProduct], (err2, result2) => {
             if (err2) {
-                console.error('Error al eliminar de PRODUCT:', err2);
-                return res.status(500).send('Error al eliminar el producto');
+                console.error('Error al eliminar de PRODUCTS_STORE:', err2);
+                return res.status(500).send('Error al eliminar el producto de la tienda');
             }
 
-            // Envío de respuesta exitosa
-            res.status(200).send('Producto eliminado con éxito');
+
+            db.query(`DELETE FROM product WHERE id = ?`, [idProduct], (err3, result3) => {
+                if (err3) {
+                    console.error('Error al eliminar de PRODUCT:', err3);
+                    return res.status(500).send('Error al eliminar el producto');
+                }
+
+           
+                res.status(200).send('Producto eliminado con éxito');
+            });
         });
     });
 });
+
 
 
 app.put('/changeState',(req,res)=>{
@@ -272,7 +295,7 @@ app.put('/changeStateClient', (req, res) => {
     const value = req.body.state;
     const fechaAct = moment().tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
     
-    db.query('UPDATE people SET updatedAt = ?, isActive = ? WHERE id =  (SELECT user.peopleId FROM user WHERE user.id=?)', [fechaAct, value, idClient], (err, result) => {
+    db.query('UPDATE people SET updatedAt = ?, isActive = ? WHERE userId=?', [fechaAct, value, idClient], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).send('Error al actualizar el estado del cliente');
@@ -389,7 +412,16 @@ app.get('/getPaymentMethod',(req,res)=>{
 
 app.get('/getInvoice',(req,res)=>{
     const {search}= req.body.search || '';
-    db.query('SELECT *FROM invoice',(err,result)=>{
+    db.query(`SELECT i.id AS invoiceId, i.createdAt, i.updatedAt,i.uuid AS invoiceUuid,
+                p.id AS productId, p.name, p.price, p.uuid AS productUuid,
+                ip.quantity,  i.total,pm.id AS paymentId, pm.method,
+                u.id AS userId, CONCAT(pe.firstName,' ',pe.lastName)AS name
+                FROM invoice AS i
+                INNER JOIN invoiceproduct AS ip ON ip.invoiceId=i.id
+                INNER JOIN product AS p ON ip.productId=p.id
+                INNER JOIN user AS u ON i.userId=u.id
+                INNER JOIN people AS pe ON u.id=pe.userId
+                INNER JOIN paymentmethod AS pm ON i.paymentMethod=pm.id`,(err,result)=>{
         if(err){
             console.log(err);
             res.status(500).send('error de consulta de las facturas');

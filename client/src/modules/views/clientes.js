@@ -288,7 +288,7 @@ const Clientes = () => {
 
 
       {/*modal de agregar tipo de cliente */}
-      <div className="modal fade" id="ModalAgregar" data-bs-backdrop='static' tabIndex="-1" aria-labelledby="ModalAgregarLabel" aria-hidden="true">
+      <div className="modal fade" id="ModalAgregar" data-bs-backdrop='static' data-bs-keyboard='false' tabIndex="-1" aria-labelledby="ModalAgregarLabel" aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">

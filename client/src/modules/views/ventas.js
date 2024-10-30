@@ -465,7 +465,7 @@ const Ventas = () => {
 
 
             {/* Modal */}
-            <div className="modal fade" id="ModalSearch" tabIndex="-1" aria-labelledby="modalSearchLabel" aria-hidden="true" data-bs-backdrop='static'>
+            <div className="modal fade" id="ModalSearch" tabIndex="-1" aria-labelledby="modalSearchLabel" data-bs-keyboard='false' aria-hidden="true" data-bs-backdrop='static'>
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
@@ -507,7 +507,8 @@ const Ventas = () => {
                           </thead>}
                             
                           <tbody>
-                          { producto ? inventario.map((producto, index)=>(
+                          { producto ? inventario.map((producto, index)=>producto.isActive?(
+
                             <tr key={index}>
                               <th scope='row'>{index+1}</th>
                               <th>{producto.categoryName}</th>
@@ -516,7 +517,7 @@ const Ventas = () => {
                               <td>{producto.stock}</td>
                               <td><button  className='btn btn-light' onClick={()=>{selectProduct(producto)}} type="button">añadir</button></td>
                             </tr>
-                          )) : clientes.map((cliente, index)=>(
+                          ):'') : clientes.map((cliente, index)=>cliente.isActive?(
                             <tr key={index}>
                                 <th scope='row'>{index}</th>
                                 <th>{cliente.firstName}</th>
@@ -525,7 +526,7 @@ const Ventas = () => {
                                 <th>{cliente.documentNumber}</th>
                                 <th><button onClick={()=>{selectCliente(cliente)}}><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512"><path fill="currentColor" d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0m149.3 277.3c0 11.8-9.5 21.3-21.3 21.3h-85.3V384c0 11.8-9.5 21.3-21.3 21.3h-42.7c-11.8 0-21.3-9.6-21.3-21.3v-85.3H128c-11.8 0-21.3-9.6-21.3-21.3v-42.7c0-11.8 9.5-21.3 21.3-21.3h85.3V128c0-11.8 9.5-21.3 21.3-21.3h42.7c11.8 0 21.3 9.6 21.3 21.3v85.3H384c11.8 0 21.3 9.6 21.3 21.3z"/></svg></button></th>
                             </tr>
-                          )) }
+                          ):'') }
                           </tbody>
                             
                         </table>
