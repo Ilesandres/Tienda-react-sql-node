@@ -1,24 +1,40 @@
 import React,{useState,useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
+import Axios from 'axios';
 
 const Facturas = () => {
-    const [productos, setProductos] = useState([
-        { id: 1, nombre: 'Producto 1', precio: 0, img: '' },
-        { id: 2, nombre: 'Producto 2', precio: 0, img: '' },
-        { id: 3, nombre: 'Producto 3', precio: 0, img: '' },
-        { id: 4, nombre: 'Producto 4', precio: 0, img: '' },
-        { id: 5, nombre: 'Producto 5', precio: 0, img: '' },
-        { id: 6, nombre: 'Producto 6', precio: 0, img: '' }
-      ]);
+    const [facturas, setFacturas] = useState([]);
+    const [search, setSearch]=useState('');
       
       const [back, setBack]=useState(false);
       const navigate=useNavigate();
-      
+    
+      const loadFacturas=()=>{
+          Axios.get('http://localhost:3001/getInvoice',{
+            params:{
+              search:search
+            }
+          }
+          ).then((response)=>{
+            setFacturas(response.data)
+          })
+      }
+
       useEffect(()=>{
         if(back){
             navigate('/');
         }
       },[back,navigate]);
+
+      useEffect(()=>{
+        loadFacturas();
+      },[search])
+
+      useEffect(()=>{
+        loadFacturas();
+      },[])
+
+
       
     
     return (
@@ -48,7 +64,7 @@ const Facturas = () => {
       {/* Sección principal */}
       <div className="main-section_facturas">
         <div className="controls_facturas">
-          <input type="text" className="search-bar_facturas" placeholder="Buscar..." />
+          <input type="search" className="search-bar_facturas" value={search} onChange={(e)=>{setSearch(e.target.value)}} placeholder="Buscar... por nit" />
           <div className="sort-buttons_facturas">
             <button>New</button>
             <button>Precio ascendente</button>
@@ -57,14 +73,16 @@ const Facturas = () => {
           </div>
         </div>
 
-        {/* Lista de productos */}
+        {/* Lista de factras */}
         <h2>Facturas</h2>
         <div className="product-list_facturas">
-          {productos.map((producto) => (
-            <div key={producto.id} className="product-card_facturas">
-              <div className="product-image_facturas" />
-              <p>{producto.nombre}</p>
-              <p>${producto.precio}</p>
+          {facturas.map((factura) => (
+            <div key={factura.invoiceId} className="product-card_facturas">
+              <div className="product-image_facturas" >
+                
+              </div>
+              <p>{factura.name}</p>
+              <p>${factura.total}</p>
             </div>
           ))}
         </div>

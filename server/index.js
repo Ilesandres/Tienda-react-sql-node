@@ -120,10 +120,10 @@ app.get('/getProducts', (req, res) => {
             INNER JOIN 
                 product ON productCategory.productId = product.id
                 INNER JOIN 
-		    productsstore ON product.id=productsstore.productId`;
+		    productsstore ON product.id=productsstore.productId WHERE productsstore.storeId=? `;
     
     if (searchData) {
-        query += ` WHERE product.name LIKE ? AND productsstore.storeId=?`; 
+        query += ` AND product.name LIKE ? `; 
     }else{
 
     }
@@ -131,7 +131,7 @@ app.get('/getProducts', (req, res) => {
     // Add GROUP BY after WHERE clause or at the end
     query += ` GROUP BY product.id`;
   
-    db.query(query, searchData ? [`%${searchData}%`,store] : [], (err, result) => {
+    db.query(query, searchData ? [store,`%${searchData}%` ] : [store], (err, result) => {
       if (err) {
         console.log(err);
         res.status(500).send('Error al realizar la búsqueda');
@@ -411,21 +411,41 @@ app.get('/getPaymentMethod',(req,res)=>{
 })
 
 app.get('/getInvoice',(req,res)=>{
-    const {search}= req.body.search || '';
-    db.query(`SELECT i.id AS invoiceId, i.createdAt, i.updatedAt,i.uuid AS invoiceUuid,
-                p.id AS productId, p.name, p.price, p.uuid AS productUuid,
-                ip.quantity,  i.total,pm.id AS paymentId, pm.method,
-                u.id AS userId, CONCAT(pe.firstName,' ',pe.lastName)AS name
-                FROM invoice AS i
-                INNER JOIN invoiceproduct AS ip ON ip.invoiceId=i.id
-                INNER JOIN product AS p ON ip.productId=p.id
-                INNER JOIN user AS u ON i.userId=u.id
-                INNER JOIN people AS pe ON u.id=pe.userId
-                INNER JOIN paymentmethod AS pm ON i.paymentMethod=pm.id`,(err,result)=>{
-        if(err){
+    const search= req.query.search || '';
+    const tiendaId=1;
+    let query=`SELECT i.id AS invoiceId, i.createdAt, i.updatedAt,
+            i.uuid AS invoiceUuid,GROUP_CONCAT(p.id) AS productsId, GROUP_CONCAT(p.name SEPARATOR ', ') AS productsNames,
+            GROUP_CONCAT(p.price) AS productPrices,i.total, pm.id AS paymentId, pm.method,
+            u.id AS userId, CONCAT(pe.firstName, ' ', pe.lastName) AS NAME
+            FROM invoice AS i
+            INNER JOIN invoiceproduct AS ip ON ip.invoiceId = i.id
+            INNER JOIN  product AS p ON ip.productId = p.id
+            INNER JOIN  USER AS u ON i.userId = u.id
+            INNER JOIN  people AS pe ON u.id = pe.userId
+            INNER JOIN  paymentmethod AS pm ON i.paymentMethod = pm.id
+            INNER JOIN  productsstore AS ps ON p.id = ps.productId
+            INNER JOIN  store AS s ON ps.storeId = s.id
+            WHERE  s.id = ?
+            GROUP BY 
+                i.id, i.createdAt, i.updatedAt, i.uuid, i.total, pm.id, pm.method, u.id, pe.firstName, pe.lastName`;
+            
+    if(search){
+        query +=` AND pe.documentNumber LIKE ?`
+    }
+    const searchData = `%${search}%`;
+    db.query(query, search?[tiendaId, searchData] : [tiendaId],(err,result)=>{
+         if(err){
             console.log(err);
             res.status(500).send('error de consulta de las facturas');
         }else{
+            if(result.length>0){
+                result.forEach((producto)=>{
+                    let productsValues=producto.productsId.split(',');
+                    let productsPrices=producto.productPrices.split(',');
+                    producto.productsValues=productsValues;
+                    producto.productPrices=productsPrices;
+                })
+            }
             res.status(200).send(result);
         }
     })
