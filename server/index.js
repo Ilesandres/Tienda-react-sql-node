@@ -412,11 +412,14 @@ app.get('/getPaymentMethod',(req,res)=>{
 
 app.get('/getInvoice',(req,res)=>{
     const search= req.query.search || '';
+    const precioAsc=req.query.precioAsc;
+    const precioDesc=req.query.precioDesc;
+
     const tiendaId=1;
     let query=`SELECT i.id AS invoiceId, i.createdAt, i.updatedAt,
             i.uuid AS invoiceUuid,GROUP_CONCAT(p.id) AS productsId, GROUP_CONCAT(p.name SEPARATOR ', ') AS productsNames,
             GROUP_CONCAT(p.price) AS productPrices,i.total, pm.id AS paymentId, pm.method,
-            u.id AS userId, CONCAT(pe.firstName, ' ', pe.lastName) AS NAME
+            u.id AS userId, CONCAT(pe.firstName, ' ', pe.lastName) AS name, pe.documentNumber
             FROM invoice AS i
             INNER JOIN invoiceproduct AS ip ON ip.invoiceId = i.id
             INNER JOIN  product AS p ON ip.productId = p.id
@@ -425,14 +428,22 @@ app.get('/getInvoice',(req,res)=>{
             INNER JOIN  paymentmethod AS pm ON i.paymentMethod = pm.id
             INNER JOIN  productsstore AS ps ON p.id = ps.productId
             INNER JOIN  store AS s ON ps.storeId = s.id
-            WHERE  s.id = ?
-            GROUP BY 
-                i.id, i.createdAt, i.updatedAt, i.uuid, i.total, pm.id, pm.method, u.id, pe.firstName, pe.lastName`;
+            WHERE  s.id = ?`;
             
     if(search){
         query +=` AND pe.documentNumber LIKE ?`
     }
-    const searchData = `%${search}%`;
+
+    query+= ` GROUP BY 
+                i.id, i.createdAt, i.updatedAt, i.uuid, i.total, pm.id, pm.method, u.id, pe.firstName, pe.lastName `;
+    
+    if(precioAsc==='true'){
+            query+= ` ORDER BY  i.total ASC `;
+    }
+    if(precioDesc==='true'){
+        query+=` ORDER BY i.total DESC `;
+    }
+                const searchData = `%${search}%`;
     db.query(query, search?[tiendaId, searchData] : [tiendaId],(err,result)=>{
          if(err){
             console.log(err);
@@ -565,6 +576,14 @@ app.get('/getStatusInvoice',(req,res)=>{
                 res.status(200).send(result)
             }
         })
+})
+
+
+
+//completar
+app.delete('/deleteInvoice',(req,res)=>{
+    const invoiceId=req.body.invoiceId;
+    console.log('eliminando factura con id : '+invoiceId);
 })
 
 app.listen(3001,()=>{
