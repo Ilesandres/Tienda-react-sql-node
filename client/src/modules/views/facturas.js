@@ -7,6 +7,9 @@ const Facturas = () => {
     const [search, setSearch]=useState('');
     const [precioAsc, setPrecioAsc]=useState(false);
     const [precioDes, setPrecioDesc]=useState(false);
+    const [limit, setLimit]=useState(0);
+    const [maxLimit,setMaxLimit]=useState(0);
+
       
       const [back, setBack]=useState(false);
       const navigate=useNavigate();
@@ -17,10 +20,18 @@ const Facturas = () => {
               search:search,
               precioAsc:precioAsc,
               precioDesc:precioDes,
+              limit:limit,
             }
           }
           ).then((response)=>{
             setFacturas(response.data)
+          })
+      }
+
+      const getinvoiceTotalMax=()=>{
+          Axios.get('http://localhost:3001/getInvoiceMax').then((res)=>{
+            setMaxLimit(res.data[0].maxInvoice);
+            setLimit(res.data[0].maxInvoice)
           })
       }
 
@@ -29,7 +40,8 @@ const Facturas = () => {
           data:{invoiceId:idFactura},
           
         }).then((response)=>{
-          console.log(response)
+          loadFacturas();
+          alert(response.data)
         })
       }
 
@@ -46,15 +58,14 @@ const Facturas = () => {
 
 
       useEffect(()=>{
-        loadFacturas
-        console.log('precio desc : '+precioDes);
-        console.log('precio Asc  : '+precioAsc);
         loadFacturas();
-      },[precioDes,precioAsc])
+      },[precioDes,precioAsc,limit])
+
 
 
       useEffect(()=>{
         loadFacturas();
+        getinvoiceTotalMax();
       },[])
 
 
@@ -64,23 +75,14 @@ const Facturas = () => {
         <div className="container_facturas">
       {/* Filtros */}
       <div className="sidebar_facturas">
-        <h3>Categoría</h3>
-        <div className="tags_facturas">
-          <span className="tag_facturas">Spring</span>
-          <span className="tag_facturas">Smart</span>
-          <span className="tag_facturas">Modern</span>
-        </div>
 
-        <div className="checkboxes_facturas">
-          <label><input type="checkbox" defaultChecked /> Comestibles</label>
-          <label><input type="checkbox" defaultChecked /> Aseo</label>
-          <label><input type="checkbox" defaultChecked /> Herramientas</label>
-        </div>
 
+
+          <h2>rango de busqueda de facturas</h2>
         <div className="slider_facturas">
           <label>Precio</label>
-          <input type="range" min="0" max="100" />
-          <p>$0 - $100</p>
+          <input type="range" min="0" max={maxLimit} onChange={ ((e)=>{setLimit(e.target.value)})}  value={limit}/>
+          <p>$0 - ${limit}</p>
         </div>
       </div>
 

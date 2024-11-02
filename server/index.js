@@ -410,10 +410,29 @@ app.get('/getPaymentMethod',(req,res)=>{
     })
 })
 
+app.get('/getInvoiceMax',(req,res)=>{
+    db.query('SELECT MAX(i.total) AS maxInvoice FROM invoice AS i',(err,result)=>{
+        if(err){
+            console.log(err);
+            res.status(500).send('error de consulta de maxima factura');
+        }else{
+            if(result.length>0){
+                result.forEach((invoice)=>{
+                    let valor=parseFloat(invoice.maxInvoice);
+                    valor=Math.ceil(valor);
+                    invoice.maxInvoice=valor;
+                })
+            }
+            res.status(200).send(result);
+        }
+    })
+})
+
 app.get('/getInvoice',(req,res)=>{
     const search= req.query.search || '';
     const precioAsc=req.query.precioAsc;
     const precioDesc=req.query.precioDesc;
+    const limit=req.query.limit;
 
     const tiendaId=1;
     let query=`SELECT i.id AS invoiceId, i.createdAt, i.updatedAt,
@@ -433,6 +452,9 @@ app.get('/getInvoice',(req,res)=>{
     if(search){
         query +=` AND pe.documentNumber LIKE ?`
     }
+    if(limit){
+        query +=` AND i.total BETWEEN 0 AND ?`
+    }
 
     query+= ` GROUP BY 
                 i.id, i.createdAt, i.updatedAt, i.uuid, i.total, pm.id, pm.method, u.id, pe.firstName, pe.lastName `;
@@ -444,7 +466,7 @@ app.get('/getInvoice',(req,res)=>{
         query+=` ORDER BY i.total DESC `;
     }
                 const searchData = `%${search}%`;
-    db.query(query, search?[tiendaId, searchData] : [tiendaId],(err,result)=>{
+    db.query(query, search?[tiendaId, searchData,limit] : [tiendaId,limit],(err,result)=>{
          if(err){
             console.log(err);
             res.status(500).send('error de consulta de las facturas');
@@ -580,10 +602,25 @@ app.get('/getStatusInvoice',(req,res)=>{
 
 
 
-//completar
+
 app.delete('/deleteInvoice',(req,res)=>{
     const invoiceId=req.body.invoiceId;
     console.log('eliminando factura con id : '+invoiceId);
+    db.query(`DELETE FROM invoiceProduct WHERE invoiceId =?`,[invoiceId], (err,result)=>{
+        if(err){
+            console.log(err);
+            res.status(500).send('error al elimar los productos de la factura');
+        }else{
+            db.query(`DELETE FROM invoice WHERE id=?`,[invoiceId],(err1,res1)=>{
+                if(err1){
+                    console.log(err1);
+                    res.status(500).send('error al eliminar la factura');
+                }else{
+                    res.status(200).send('factura eliminada con exito')
+                }
+            })
+        }
+    })
 })
 
 app.listen(3001,()=>{

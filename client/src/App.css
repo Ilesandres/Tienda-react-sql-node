@@ -278,6 +278,7 @@ color: #717171;
 }
 
 .sidebar_facturas {
+  margin: 15px;
   width: 250px;
   padding: 20px;
   background-color: #f7f7f7;
