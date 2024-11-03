@@ -1,13 +1,18 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect, useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
+import UserContext, { Storecontext, UserProvider } from '../layout/userContext';
+import { types } from '../layout/userReducer';
 
 const Usuario = () => {
-
+  
+    const [Store, dispatch]=useContext(Storecontext);
+    const {user}=Store;
+   const [userLog,setUserLog]=useState(user? user.userName : '')
     const [hora, setHora] = useState(20);
     const [minuto, setMinuto] = useState(0);
     const [amPm, setAmPm]=useState('Am');
     const [formData, setFormData] = useState({
-      nombre: 'user',
+      nombre: userLog || '',
       usuario: 'username',
       email: 'email@gmail.com',
       descripcion: 'Value'
@@ -40,10 +45,11 @@ const Usuario = () => {
           [name]: value,
         });
       };
+
       
       useEffect(()=>{
         if(back){
-            navigate('/');
+            navigate('/homePage');
         }
       },[back,navigate]);
     
@@ -51,6 +57,7 @@ const Usuario = () => {
     return (
         <div className="container_user">
         <a className="back_link_user" onClick={()=>{setBack(!back);}}>Atrás</a>
+        <a className='log-out_user' onClick={()=>{dispatch({type :types.authLogout})}}>logout</a>
   
         <div className="profile_section_user">
           {/* Icono de usuario */}

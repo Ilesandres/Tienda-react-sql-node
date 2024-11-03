@@ -3,8 +3,9 @@ const app=express();
 const mysql=require('mysql2');
 const cors=require("cors");
 const http=require("http");
-const socketIo=require("socket.io");
 const moment=require('moment-timezone');
+const bcrypt=require('bcrypt');
+const saltRounds=13;
 const { resolve } = require("path");
 const { rejects } = require("assert");
 
@@ -271,16 +272,17 @@ app.get('/getClients', (req, res) => {
         INNER JOIN documentType ON people.documentTypeId=documentType.id
         INNER JOIN user ON people.userId=user.id
         INNER JOIN userroles ON user.id=userroles.userId
-        INNER JOIN roles ON  userroles.rolId=roles.id WHERE roles.id=1
+        INNER JOIN roles ON  userroles.rolId=roles.id 
                 `);
 
     if (search) {
-        query += ` AND people.firstName LIKE ? OR people.lastName LIKE ? OR people.documentNumber LIKE ?`;
+        query += ` WHERE people.firstName LIKE ? OR people.lastName LIKE ? OR people.documentNumber LIKE ? AND roles.id=1`;
+    }else{
+        query+=` WHERE roles.id=1 `;
     }
-    query+=` ORDER BY people.updatedAt DESC `;
-
+    
     const searchData = `%${search}%`;
-    db.query(query, search ? [searchData, searchData, searchData] : [], (err, result) => {
+    db.query(query, search ? [searchData, searchData,searchData] : [], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).send('Error en la consulta');
@@ -328,49 +330,99 @@ app.post('/addTipoNit',(req,res)=>{
     })
 })
 
-//modificar todo esta seccion
-app.post('/addCliente',(req,res)=>{
-    const nombre =req.body.nombre;
-    const apellido =req.body.apellido;
-    const direccion =req.body.direccion;
-    const nitCliente =req.body.nitCliente;
-    const tipoNit =req.body.tipoNit;
-    const phone =req.body.telefono;
-    const rol =1;
-    const username='';
-    const password='';
-    const is_Active =true;
 
-    db.query(`INSERT INTO  user(username, password) VALUES(?,?)`,[username,password],(err1,result1)=>{
-        if(err1){
-            console.log(err1);
-            res.status(500).send('error al crear el usuario');
-        }else{
-            const idUser=result1.insertId;
 
-                db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive,userId) 
-                VALUES (?, ?, ?, ?, ?, ?, ?,?)`, [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active,idUser], (err, result) => {
-                if (err) {
-                    console.log(err);
-                    res.status(500).send('error al insertar la persona')
-                } else {
-                    
-                    db.query(`INSERT INTO userroles(rolId, userId) VALUES(?,?)`,[rol,idUser],(err2, rsult2)=>{
-                        if(err2){
-                            console.log(err2);
-                            res.status(500).send('error al insertar el rol');
-                        }else{
-                            res.status(200).send('Cliente agregado con éxito');
-                        }
-                    })
-                            
-                }
-            })
+app.post('/addCliente', (req, res) => {
+    const nombre = req.body.nombre;
+    const apellido = req.body.apellido;
+    const direccion = req.body.direccion;
+    const nitCliente = req.body.nitCliente;
+    const tipoNit = req.body.tipoNit;
+    const phone = req.body.telefono;
+    const rol = req.body.rol || 1;
+    const username = req.body.username || null;
+    let password = req.body.password || null;
+    const is_Active = true;
+    db.query(`SELECT COUNT(*) AS count FROM user WHERE username = ?`, [username], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error en la consulta');
         }
-    })
+    
+        const count = result[0].count;
+        if (count > 0) {
+            return res.status(400).send('El nombre de usuario ya existe');
+        }
+        const hashPassword = (password) => {
+        return new Promise((resolve, reject) => {
+            if (password) {
+                bcrypt.hash(password, saltRounds, (err, hash) => {
+                    if (err) {
+                        reject('Error al hashear la contraseña');
+                    } else {
+                        resolve(hash);
+                    }
+                });
+            } else {
+                resolve(null); 
+            }
+        });
+    };
 
 
-})
+    hashPassword(password)
+        .then((hashedPassword) => {
+            return new Promise((resolve, reject) => {
+                db.query(`INSERT INTO user(username, password) VALUES(?, ?)`, [username, hashedPassword], (err1, result1) => {
+                    if (err1) {
+                        reject(err1);
+                    } else {
+                        resolve(result1.insertId);
+                    }
+                });
+            });
+        })
+        .then((idUser) => {
+            return new Promise((resolve, reject) => {
+                db.query(`INSERT INTO people (firstName, lastName, address, documentTypeId, documentNumber, phone, isActive, userId) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+                          [nombre, apellido, direccion, tipoNit, nitCliente, phone, is_Active, idUser], 
+                          (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(idUser);
+                    }
+                });
+            });
+        })
+        .then((idUser) => {
+            return new Promise((resolve, reject) => {
+                db.query(`INSERT INTO userroles(rolId, userId) VALUES(?, ?)`, [rol, idUser], (err2, result2) => {
+                    if (err2) {
+                        reject(err2);
+                    } else {
+                        resolve('Cliente agregado con éxito');
+                    }
+                });
+            });
+        })
+        .then((message) => {
+            res.status(200).send(message);
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send('Error al crear el usuario');
+        });
+        
+    });
+  
+
+
+}
+);
+
+
 
 app.put('/updateClient',(req,res)=>{
     const nombre =req.body.nombre;
@@ -622,6 +674,59 @@ app.delete('/deleteInvoice',(req,res)=>{
         }
     })
 })
+
+app.post('/verifyLogin',(req, res)=>{
+    const username=req.body.user;
+    const password=req.body.password;
+    db.query(`SELECT username, password, uuid FROM user WHERE username=?`,[username],(err,result)=>{
+        if(err){
+            console.log(err);
+            return res.status(204).send('user not avalaible');
+        }else{
+            if(result.length===0 || result.length>1){
+                res.status(404).send('user not avalaible please contact with tecnic support')
+            }else{
+            const user=result[0];
+            const passAlmacenada=user.password;
+            bcrypt.compare(password, passAlmacenada,(err1,result1)=>{
+                if(err){
+                    console.log(err1);
+                    return res.status(500).send('error de verificacion de password');
+                }else if(result1){
+                    const dataUser={
+                        result:result1,
+                        userName: user.username,
+                        uuid: user.uuid,
+                    }
+                    return res.status(202).send(dataUser);
+                }else{
+                    return res.status(401).send('error de contraseña o usuario')
+                }
+            })
+
+            }
+            
+        }
+    })
+})
+
+//completar
+app.get('/storeInfo',(req,res)=>{
+
+    const storeId=req.query.idStore || 1;
+    db.query(`SELECT *FROM store WHERE id=1`,(err,result)=>{
+        if(err){
+            console.log(err);
+            res.status(500).send('error interno');
+        }else{
+            res.status(200).send(result);
+        }
+    })
+
+})
+
+
+
 
 app.listen(3001,()=>{
     console.log('corriendo en el puerto 3001')

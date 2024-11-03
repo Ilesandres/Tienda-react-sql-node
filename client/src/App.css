@@ -456,7 +456,23 @@ color: #717171;
   height: 100vh;
   width: 100%;
 }
+.log-out_user {
+  text-decoration: none;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  height: 50px;
+  padding: 10px 20px;
+  color: #fff; 
+  background-color: #007bff;
+  border-radius: 5px; 
+  display: inline-block; 
+  transition: background-color 0.3s, color 0.3s; 
+}
 
+.log-out_user:hover {
+  background-color: #0056b3; 
+  color: #fff; 
+  cursor: pointer;
+}
 .back_link_user {
   align-self: flex-start;
   color: blue;
@@ -899,3 +915,68 @@ button:hover .circle .icon.arrow {
 button:hover .button-text {
  color: #fff;
 }
+
+
+/*-------------------------------------------------store----------------------- */
+
+.center-wrapper{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.store-container_info {
+  text-align: center;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  max-width: 600px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.store-title_info {
+  font-size: 2em;
+  font-weight: bold;
+  color: #4a90e2;
+  margin-bottom: 15px;
+}
+
+.store-description_info {
+  font-size: 1.2em;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.store-buttons_info {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-back_info, .btn-add-user_info {
+  font-size: 1em;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-back_info {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.btn-back_info:hover {
+  background-color: #c0392b;
+}
+
+.btn-add-user_info {
+  background-color: #2ecc71;
+  color: #fff;
+}
+
+.btn-add-user_info:hover {
+  background-color: #27ae60;
+}
+

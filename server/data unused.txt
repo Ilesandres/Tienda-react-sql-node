@@ -1,0 +1,13 @@
+const storedHash = 'hashAlmacenado'; // Este es el hash que has guardado en la base de datos
+
+bcrypt.compare(password, storedHash, (err, result) => {
+  if (err) {
+    console.error('Error al comparar las contraseñas:', err);
+  } else if (result) {
+    console.log('La contraseña es válida!');
+    // El usuario ha ingresado la contraseña correcta
+  } else {
+    console.log('La contraseña es incorrecta.');
+    // El usuario ha ingresado una contraseña incorrecta
+  }
+});

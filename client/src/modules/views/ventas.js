@@ -338,7 +338,7 @@ const Ventas = () => {
         <div className="ventas-container_ventas">
             {/* Encabezado */}
             <header className="header_ventas">
-                <button className="back-btn_ventas" onClick={() => { navigate('/'); }}>
+                <button className="back-btn_ventas" onClick={() => { navigate('/homePage'); }}>
                     Back
                 </button>
                 <h1>Ventas</h1>

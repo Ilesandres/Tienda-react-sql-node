@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-
 import { useNavigate } from 'react-router-dom';
+import UserData from '../layout/userData';
 
 const Homepage = () => {
 
@@ -45,6 +45,7 @@ const Homepage = () => {
     
     return (
         <div className="app-container">
+          <UserData/>
         {/* Barra lateral */}
         <aside className="sidebar">
           <div className="sidebar-item">
@@ -59,7 +60,7 @@ const Homepage = () => {
               </button>
             </div>
           <div className="sidebar-item">
-            <button type='button' title='Bussisnes'> 
+            <button type='button' title='Bussisnes' onClick={()=>{navigate('/store')}}> 
                 <img src='https://img.icons8.com/ios/50/company--v1.png'/>Empresa
             </button>
             </div>

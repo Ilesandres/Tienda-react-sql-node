@@ -12,7 +12,7 @@ const Productos = () => {
 
   useEffect(()=>{
     if(back){
-      navigate('/');
+      navigate('/homePage');
     }
 
   },[back,navigate]);

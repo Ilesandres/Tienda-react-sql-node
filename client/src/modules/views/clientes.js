@@ -208,7 +208,7 @@ const Clientes = () => {
     /*use effect */
     useEffect(()=>{
       if(back){
-        navigate('/');
+        navigate('/homePage');
       }
   
     },[back,navigate]);
@@ -331,7 +331,7 @@ const Clientes = () => {
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={()=>{setAgregarCliente(false)}}>Close</button>
-              <button type="button" className="btn btn-primary" onClick={()=>{saveProduct()}}>{editando? 'guardar cambios':'guardar producto'}</button>
+              <button type="button" className="btn btn-primary" onClick={()=>{saveProduct()}}>{editando? 'guardar cambios':'guardar cliente'}</button>
             </div>
           </div>
         </div>

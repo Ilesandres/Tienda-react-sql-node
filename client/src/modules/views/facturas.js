@@ -48,7 +48,7 @@ const Facturas = () => {
 
       useEffect(()=>{
         if(back){
-            navigate('/');
+            navigate('/homePage');
         }
       },[back,navigate]);
 
